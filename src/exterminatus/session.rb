@@ -68,14 +68,7 @@ module BACommunity
             if text.empty?
               repeat_last
             elsif !forward_to_tool(text)
-              remember(text)
-              emit(:echo, text)
-              @last_failed = false
-              chain, err = lex(text)
-              return emit(:error, err) if err
-
-              @queue = chain
-              drain
+              run_typed(text)
             end
           end
         end
@@ -259,7 +252,9 @@ module BACommunity
               text: param ? param_prompt(param) : 'Press Enter to run',
               default: param && !param.selection? ? param.format(@run.args[param.key]).then { |s| s.empty? ? nil : s } : nil,
               options: option_params.reject { |p| p == param }.map { |p| { name: p.name, value: p.format(@run.args[p.key]) } },
-              values: param&.type == :option ? param.values : (param&.type == :bool ? %w[Yes No] : [])
+              values: param&.type == :option ? param.values : (param&.type == :bool ? %w[Yes No] : []),
+              # Ответ — любой текст: имена команд в подсказках не предлагать.
+              free_text: param&.type == :string
             }
           elsif @external
             {
@@ -267,7 +262,8 @@ module BACommunity
               text: @external.text,
               default: @external.default&.to_s,
               options: @external.options.map { |k, v| { name: k, value: v } },
-              values: []
+              values: [],
+              free_text: true
             }
           end
         end
@@ -348,10 +344,12 @@ module BACommunity
           return choose_option(opt) if opt
           return set_option(Regexp.last_match) if text.match(/\A([A-Za-z][A-Za-z0-9]*)=(.*)\z/) &&
                                                    option_params.any? { |p| p.name.casecmp?(Regexp.last_match(1)) }
+          return switch_to(text) if param.nil? && other_command?(text)
           return emit(:error, 'Press Enter to run, Esc to cancel, or click an option') if param.nil?
 
           value, err = param.parse(text, base: point_base(param), cursor: Picker.cursor, args: resolved(@run))
-          return emit(:error, err) if err
+          return switch_to(text) if err && other_command?(text)
+          return emit(:error, "#{err} (Esc cancels #{@run.cmd.id})") if err
 
           @run.args[param.key] = value
           @normals.delete(param.key)
@@ -454,6 +452,35 @@ module BACommunity
           when false
             fail_chain("#{cmd.id} failed")
           end
+        end
+
+        # Строка, набранная без ждущей команды: в историю, на экран, в работу.
+        def run_typed(text)
+          remember(text)
+          emit(:echo, text)
+          @last_failed = false
+          chain, err = lex(text)
+          return emit(:error, err) if err
+
+          @queue = chain
+          drain
+        end
+
+        # Пока команда ждёт ответа, набрали имя другой команды (точное имя или
+        # синоним) — как смена инструмента в SketchUp: ждущая отменяется,
+        # новая запускается. Иначе забытая команда (пробел повторил последнюю)
+        # молча перехватывает всё, что набирают.
+        def other_command?(text)
+          name = text.split(/[\s;]/).first.to_s
+          !name.empty? && !Registry.find(name).nil?
+        end
+
+        def switch_to(text)
+          emit(:info, "#{@run.cmd.id} cancelled")
+          @run = nil
+          @queue.clear
+          Picker.stop
+          run_typed(text)
         end
 
         def succeeded?(res)

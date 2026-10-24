@@ -47,6 +47,10 @@ Commands architools        список команд плагина
 | ↑ ↓ | подсказки, а без подсказок — история |
 | Esc | закрыть подсказки → отменить команду → закрыть строку |
 
+Пока команда ждёт точку или число, имя другой команды отменяет её и
+запускает новую — как смена инструмента в SketchUp. Подсказки команд при
+этом работают.
+
 Имена команд только английские. Автодополнение ищет по началу имени, по
 заглавным буквам (`pp` → PushPull, `ze` → ZoomExtents), по подстроке и по
 синонимам. Синонимы стандартных команд совпадают со стандартными клавишами
@@ -155,7 +159,7 @@ Window → Extension Manager → Install Extension → `exterminatus-0.1.0.rbz`.
 
 ```bash
 python test/bridge.py test/live_session.rb   # исполнитель, параметры, мост: 48 проверок
-python test/bridge.py test/live_modify.rb    # Move…PushPull, точки, пикер: 57 проверок
+python test/bridge.py test/live_modify.rb    # Move…PushPull, точки, пикер: 59 проверок
 python test/bridge.py test/live_draw.rb      # рисование: 47 проверок
 python test/live_async.py                    # цепочки с send_action, окна: 10 проверок
 python test/live_builtins.py                 # стандартные команды: 72 проверки, ~10 минут

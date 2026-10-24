@@ -170,6 +170,19 @@ errs = run.('Count=0')
 ok.('Name=value is range-checked', errs.first.to_s.include?('at least'), errs)
 S.cancel
 
+# Ждущая команда не глотает другие: имя команды отменяет её и запускается.
+sel.(g)
+S.submit('Move')
+mark = S.seq
+S.submit('SelectNone')
+texts = S.log_after(mark).map { |l| l[:text] }
+ok.('command name replaces a waiting command', !S.busy? && m.selection.empty? && texts.include?('Move cancelled'), texts)
+sel.(g)
+S.submit('Move')
+errs = run.('qwerty')
+ok.('garbage at a prompt hints Esc', S.busy? && errs.first.to_s.include?('Esc cancels Move'), errs)
+S.cancel
+
 # ---------- Rotate ----------
 sel.(g)
 c0 = g.bounds.center

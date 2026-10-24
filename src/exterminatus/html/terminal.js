@@ -14,6 +14,7 @@
     draft: '',
     prompt: null,
     items: [],
+    itemsKind: 'commands', // 'values' — варианты ответа на вопрос, 'commands' — имена команд
     active: 0,
     navigated: false,
     lastHeight: 0
@@ -77,11 +78,24 @@
     return { start: value.length - rest.length, text: rest };
   }
 
+  // Пока команда ждёт точку или число, буквы — это имя другой команды
+  // (Ruby отменит ждущую и запустит новую). Кроме имён опций вопроса.
+  function commandsAllowed(value) {
+    var p = S.prompt;
+    if (!p) return true;
+    if (!p.command || p.free_text || (p.values && p.values.length)) return false;
+    var q = value.trim().toLowerCase();
+    if (!/^[a-z]/.test(q)) return false;
+    return !(p.options || []).some(function (o) { return o.name.toLowerCase().indexOf(q) === 0; });
+  }
+
   function suggestions() {
     var value = el.input.value;
-    if (S.prompt) {
+    S.itemsKind = 'commands';
+    if (S.prompt && !commandsAllowed(value)) {
       var vals = S.prompt.values || [];
       if (!vals.length) return [];
+      S.itemsKind = 'values';
       var qv = value.trim().toLowerCase();
       return vals.filter(function (v) { return v.toLowerCase().indexOf(qv) === 0; })
         .map(function (v) { return { id: v, value: v, plugin: '', desc: '', marks: range(0, qv.length) }; });
@@ -260,7 +274,7 @@
   function pick(submitNow) {
     var item = S.items[S.active];
     if (!item) return false;
-    if (S.prompt) {
+    if (S.itemsKind === 'values') {
       el.input.value = item.value;
     } else {
       var tok = commandToken(el.input.value);
@@ -280,7 +294,7 @@
     // Enter берёт подсказку, выбранную стрелками, а без выбора — первую,
     // если имя команды недобрано.
     var item = S.items[S.active];
-    if (item && S.prompt) {
+    if (item && S.itemsKind === 'values') {
       if (S.navigated) value = item.value;
     } else if (item) {
       var tok = commandToken(value);
