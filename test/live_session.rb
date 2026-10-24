@@ -24,6 +24,8 @@ def errors(lines)
 end
 
 S.cancel while S.busy?
+# История пользователя: сохранить и вернуть в конце, чтобы тест её не засорял.
+$saved_history = S.history.dup
 %w[ExtTest ExtLambda0 ExtFail ExtRaise].each { |id| T.unregister(id) }
 
 T.register(id: 'ExtTest', plugin: 'Test', description: 'test command',
@@ -203,6 +205,8 @@ check('real terminal skips stub') do
 end
 
 %w[ExtTest ExtLambda0 ExtFail ExtRaise ExtChain ExtReq ExtLen ExtStr ExtOuter ExtAsk].each { |id| T.unregister(id) }
+S.history.replace($saved_history)
+Sketchup.write_default(T::PREFS_KEY, 'history', JSON.generate($saved_history))
 fails = $checks.reject { |c| c[0] == 'PASS' }
 puts $checks.map { |c| c.join('  ') }
 puts "#{$checks.size - fails.size}/#{$checks.size} passed"
