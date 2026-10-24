@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Exterminatus UI harness</title>
+  <style>
+    /* Стенд: две «рамы» окна на фоне, похожем на вьюпорт SketchUp. Каждая — iframe
+       с frame.html?mode=..., внутри настоящие index.html/terminal.css/terminal.js
+       и заглушка window.sketchup. Запуск: python -m http.server из корня репо. */
+    body { margin: 0; padding: 24px; background: #dfe6e9; font: 12px "Segoe UI", sans-serif; }
+    h2 { font-size: 12px; font-weight: 600; margin: 16px 0 6px; color: #444; }
+    .win { border: 1px solid #8a8a8a; background: #f0f0f0; display: inline-block; vertical-align: top; margin-right: 24px; }
+    .win__title { height: 22px; line-height: 22px; padding: 0 8px; color: #555; border-bottom: 1px solid #ccc; }
+    iframe { display: block; border: 0; }
+  </style>
+</head>
+<body>
+  <h2>Command Bar (720×140)</h2>
+  <div class="win"><div class="win__title">Exterminatus</div><iframe id="bar" src="frame.html?mode=bar" width="720" height="140"></iframe></div>
+  <h2>Popup (460 × auto)</h2>
+  <div class="win"><div class="win__title">Command</div><iframe id="popup" src="frame.html?mode=popup" width="460" height="60"></iframe></div>
+  <script>
+    // Popup сообщает высоту — подгоняем iframe, как Ruby подгоняет окно.
+    window.addEventListener('message', function (e) {
+      if (e.data && e.data.height) document.getElementById('popup').height = e.data.height;
+    });
+  </script>
+</body>
+</html>

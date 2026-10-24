@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Command</title>
+  <link rel="stylesheet" href="terminal.css">
+</head>
+<body class="mode-bar">
+  <main class="terminal" aria-label="Command terminal" aria-busy="false">
+    <div id="busy" role="progressbar" aria-label="Working"></div>
+
+    <div id="log"
+         role="log"
+         aria-label="Command output"
+         aria-live="polite"
+         aria-relevant="additions text"
+         tabindex="0"></div>
+
+    <div class="command">
+      <div id="prompt" class="is-hidden">
+        <span class="prompt__text"></span>
+        <span class="prompt__default"></span>
+        <span class="prompt__options"></span>
+      </div>
+
+      <div class="entry">
+        <input id="input"
+               type="text"
+               placeholder="Command"
+               aria-label="Command"
+               aria-describedby="prompt input-hint"
+               role="combobox"
+               aria-autocomplete="list"
+               aria-controls="suggest"
+               aria-expanded="false"
+               autocomplete="off"
+               autocapitalize="off"
+               spellcheck="false">
+        <span id="input-hint" class="input-hint is-hidden">
+          Enter — repeat last
+        </span>
+      </div>
+    </div>
+
+    <div id="suggest"
+         class="is-hidden"
+         role="listbox"
+         aria-label="Command suggestions"></div>
+  </main>
+
+  <script src="terminal.js"></script>
+</body>
+</html>

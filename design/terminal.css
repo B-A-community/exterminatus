@@ -1,0 +1,464 @@
+:root {
+  color-scheme: light;
+
+  --font-ui: "Segoe UI", system-ui, sans-serif;
+  --font-code: Consolas, "Courier New", monospace;
+  --font-size: 12px;
+  --weight-normal: 400;
+  --weight-strong: 600;
+  --line-height: 18px;
+
+  --panel: #f0f0f0;
+  --field: #ffffff;
+  --text: #262626;
+  --muted: #666666;
+  --border: #b8b8b8;
+  --divider: #d3d3d3;
+  --hover: #e5e5e5;
+  --focus: #606060;
+  --selection: #0067c0;
+  --selection-text: #ffffff;
+  --error: #873b35;
+  --busy-track: #dedede;
+  --busy-fill: #777777;
+  --scroll-thumb: #b8b8b8;
+  --scroll-hover: #929292;
+
+  --stroke: 1px;
+  --radius: 2px;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+
+  --input-height: 26px;
+  --input-min-width: 140px;
+  --suggest-row-height: 42px;
+  --suggest-max-height: 264px;
+  --plugin-max-width: 132px;
+  --prompt-max-height: 108px;
+  --popup-max-height: 320px;
+  --scrollbar-size: 10px;
+  --busy-height: 2px;
+  --busy-duration: 1.5s;
+  --focus-offset: -2px;
+  --underline-offset: 2px;
+
+  /* Preview-only tokens; no effect on the terminal itself. */
+  --preview-sky: #e5ebed;
+  --preview-ground: #e2e1d9;
+  --preview-edge: #a6aaa5;
+  --preview-face: #f5f4ef;
+  --preview-side: #d1d0c8;
+  --preview-width: 1220px;
+  --preview-bar-width: 720px;
+  --preview-popup-width: 460px;
+  --preview-gap: 20px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  font: var(--weight-normal) var(--font-size) / var(--line-height) var(--font-ui);
+}
+
+body:is(.mode-bar, .mode-popup) {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--panel);
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+.terminal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding-top: var(--busy-height);
+  overflow: hidden;
+  border: var(--stroke) solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.mode-bar .terminal {
+  height: 100%;
+}
+
+.mode-popup .terminal {
+  max-height: min(100%, var(--popup-max-height));
+}
+
+#log,
+#suggest,
+#prompt {
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+#log {
+  min-width: 0;
+  min-height: 0;
+  padding: var(--space-1) var(--space-4);
+  overflow: auto;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.mode-bar #log {
+  order: 0;
+  flex: 1 1 0;
+}
+
+.line {
+  min-height: var(--line-height);
+}
+
+.line--echo {
+  color: var(--text);
+  font-family: var(--font-code);
+}
+
+.line--info {
+  color: var(--muted);
+}
+
+.line--result {
+  color: var(--text);
+}
+
+.line--error {
+  color: var(--error);
+}
+
+.command {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+  padding: var(--space-2);
+}
+
+.mode-bar .command {
+  order: 2;
+  border-top: var(--stroke) solid var(--divider);
+}
+
+.mode-popup .command {
+  order: 0;
+}
+
+#prompt {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  max-height: var(--prompt-max-height);
+  padding-inline: var(--space-1);
+  overflow: auto;
+  overflow-wrap: anywhere;
+  line-height: var(--line-height);
+}
+
+.prompt__text {
+  color: var(--text);
+}
+
+.prompt__default,
+.prompt__options {
+  color: var(--muted);
+}
+
+.opt {
+  display: inline-block;
+  padding: var(--space-1);
+  border-radius: var(--radius);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.opt__name {
+  text-decoration: underline;
+  text-underline-offset: var(--underline-offset);
+}
+
+.opt__value {
+  color: var(--muted);
+}
+
+.opt:hover {
+  background: var(--hover);
+}
+
+.opt:focus-visible {
+  outline: var(--stroke) dotted var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+.entry {
+  display: flex;
+  flex: 1 1 var(--input-min-width);
+  align-items: center;
+  min-width: 0;
+  height: var(--input-height);
+  overflow: hidden;
+  border: var(--stroke) solid var(--border);
+  border-radius: var(--radius);
+  background: var(--field);
+}
+
+.entry:focus-within {
+  border-color: var(--focus);
+}
+
+#input {
+  display: block;
+  flex: 1 1 auto;
+  width: 0;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  caret-color: var(--text);
+}
+
+#input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+#input::selection {
+  color: var(--selection-text);
+  background: var(--selection);
+}
+
+#input:disabled {
+  color: var(--muted);
+  cursor: wait;
+}
+
+.input-hint {
+  display: none;
+  flex: 0 0 auto;
+  padding-right: var(--space-3);
+  color: var(--muted);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+#input:placeholder-shown ~ .input-hint {
+  display: block;
+}
+
+#prompt:not(.is-hidden) ~ .entry .input-hint,
+.is-busy .input-hint {
+  display: none;
+}
+
+#suggest {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 0;
+  max-height: var(--suggest-max-height);
+  overflow: auto;
+  background: var(--field);
+}
+
+.mode-bar #suggest {
+  order: 1;
+  max-height: 60%;
+  border-top: var(--stroke) solid var(--divider);
+}
+
+.mode-popup #suggest {
+  order: 1;
+  border-top: var(--stroke) solid var(--divider);
+}
+
+.sg {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) fit-content(var(--plugin-max-width));
+  align-content: center;
+  column-gap: var(--space-4);
+  min-height: var(--suggest-row-height);
+  padding: var(--space-2) var(--space-4);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.sg__id,
+.sg__plugin,
+.sg__desc {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg__id {
+  font-family: var(--font-code);
+}
+
+.sg__plugin {
+  color: var(--muted);
+  text-align: right;
+}
+
+.sg__desc {
+  grid-column: 1 / -1;
+  color: var(--muted);
+}
+
+.sg mark {
+  background: transparent;
+  color: inherit;
+  font-weight: var(--weight-strong);
+  text-decoration: underline;
+  text-underline-offset: var(--underline-offset);
+}
+
+.sg:hover {
+  background: var(--hover);
+}
+
+.sg.sg--active {
+  color: var(--selection-text);
+  background: var(--selection);
+}
+
+.sg--active .sg__plugin,
+.sg--active .sg__desc {
+  color: inherit;
+}
+
+.sg:focus-visible {
+  outline: var(--stroke) dotted currentColor;
+  outline-offset: var(--focus-offset);
+}
+
+/* Popup has no history. Optional .has-result reveals its last line only. */
+.mode-popup #log {
+  display: none;
+}
+
+.mode-popup.has-result #log {
+  display: block;
+  order: 2;
+  flex: 0 1 auto;
+  max-height: calc(var(--line-height) * 2 + var(--space-2));
+  border-top: var(--stroke) solid var(--divider);
+}
+
+.mode-popup.has-result #log .line:not(:last-child) {
+  display: none;
+}
+
+#busy {
+  position: absolute;
+  z-index: 1;
+  inset: 0 0 auto;
+  height: var(--busy-height);
+  overflow: hidden;
+  visibility: hidden;
+  background: var(--busy-track);
+  pointer-events: none;
+}
+
+#busy::after {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 28%;
+  background: var(--busy-fill);
+  content: "";
+  animation: terminal-busy var(--busy-duration) linear infinite;
+  animation-play-state: paused;
+}
+
+body.is-busy #busy {
+  visibility: visible;
+}
+
+body.is-busy #busy::after {
+  animation-play-state: running;
+}
+
+@keyframes terminal-busy {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(360%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #busy::after {
+    width: 100%;
+    animation: none;
+  }
+}
+
+::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: var(--panel);
+}
+
+::-webkit-scrollbar-thumb {
+  border: var(--space-1) solid var(--panel);
+  border-radius: var(--radius);
+  background: var(--scroll-thumb);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-hover);
+}
+
+@media (forced-colors: active) {
+  :root {
+    --panel: Canvas;
+    --field: Canvas;
+    --text: CanvasText;
+    --muted: CanvasText;
+    --border: ButtonText;
+    --divider: GrayText;
+    --hover: ButtonFace;
+    --focus: Highlight;
+    --selection: Highlight;
+    --selection-text: HighlightText;
+    --error: CanvasText;
+    --busy-track: Canvas;
+    --busy-fill: CanvasText;
+    --scroll-thumb: ButtonText;
+    --scroll-hover: Highlight;
+  }
+
+  .sg--active,
+  #busy {
+    forced-color-adjust: none;
+  }
+}

@@ -1,0 +1,1186 @@
+[
+  {
+    "id": "Arc",
+    "plugin": "SketchUp",
+    "description": "Draw an arc by endpoints and bulge",
+    "aliases": [
+      "A"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ArcCenter",
+    "plugin": "SketchUp",
+    "description": "Draw an arc by center, radius and end point",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Axes",
+    "plugin": "SketchUp",
+    "description": "Move or reorient the drawing axes",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Back",
+    "plugin": "SketchUp",
+    "description": "Standard view: back",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Bottom",
+    "plugin": "SketchUp",
+    "description": "Standard view: bottom",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Circle",
+    "plugin": "SketchUp",
+    "description": "Draw circles from center and radius",
+    "aliases": [
+      "C"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ClearLog",
+    "plugin": "Exterminatus",
+    "description": "Clear the terminal output",
+    "aliases": [
+      "Cls"
+    ],
+    "builtin": false,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "CommandBar",
+    "plugin": "Exterminatus",
+    "description": "Show or hide the command bar",
+    "aliases": [
+
+    ],
+    "builtin": false,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Commands",
+    "plugin": "Exterminatus",
+    "description": "List commands, optionally filtered by plugin or text",
+    "aliases": [
+      "Help"
+    ],
+    "builtin": false,
+    "params": [
+      {
+        "key": "filter",
+        "name": "Filter",
+        "type": "string",
+        "values": [
+
+        ],
+        "prompt": false,
+        "description": null
+      }
+    ]
+  },
+  {
+    "id": "Copy",
+    "plugin": "SketchUp",
+    "description": "Copy selection",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Cut",
+    "plugin": "SketchUp",
+    "description": "Cut selection",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Delete",
+    "plugin": "SketchUp",
+    "description": "Delete selection",
+    "aliases": [
+      "Del"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "DeleteGuides",
+    "plugin": "SketchUp",
+    "description": "Delete all guides in the current context",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Dimension",
+    "plugin": "SketchUp",
+    "description": "Create linear dimensions",
+    "aliases": [
+      "Dim"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Erase",
+    "plugin": "SketchUp",
+    "description": "Erase, hide, soften or smooth edges",
+    "aliases": [
+      "E"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Explode",
+    "plugin": "SketchUp",
+    "description": "Explode selected groups and components",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ExtensionManager",
+    "plugin": "SketchUp",
+    "description": "Open the Extension Manager",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Flip",
+    "plugin": "SketchUp",
+    "description": "Flip or mirror selected entities",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "FollowMe",
+    "plugin": "SketchUp",
+    "description": "Extrude a face along a path",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Freehand",
+    "plugin": "SketchUp",
+    "description": "Draw freehand curves",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Front",
+    "plugin": "SketchUp",
+    "description": "Standard view: front",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Group",
+    "plugin": "SketchUp",
+    "description": "Make a group from the selection",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "HiddenLine",
+    "plugin": "SketchUp",
+    "description": "Face style: hidden line",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Hide",
+    "plugin": "SketchUp",
+    "description": "Hide selection",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "History",
+    "plugin": "Exterminatus",
+    "description": "Show recent command lines",
+    "aliases": [
+
+    ],
+    "builtin": false,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "IntersectSelected",
+    "plugin": "SketchUp",
+    "description": "Intersect the selected geometry with itself",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "InvertSelection",
+    "plugin": "SketchUp",
+    "description": "Invert the selection in the current context",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Iso",
+    "plugin": "SketchUp",
+    "description": "Standard view: isometric",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Lasso",
+    "plugin": "SketchUp",
+    "description": "Lasso selection tool",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Left",
+    "plugin": "SketchUp",
+    "description": "Standard view: left",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Line",
+    "plugin": "SketchUp",
+    "description": "Draw edges and lines",
+    "aliases": [
+      "L"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "LookAround",
+    "plugin": "SketchUp",
+    "description": "Look around from a fixed point",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "MakeComponent",
+    "plugin": "SketchUp",
+    "description": "Make a component from the selection",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+      {
+        "key": "name",
+        "name": "Name",
+        "type": "string",
+        "values": [
+
+        ],
+        "prompt": true,
+        "description": "Definition name"
+      }
+    ]
+  },
+  {
+    "id": "MakeUnique",
+    "plugin": "SketchUp",
+    "description": "Make selected components unique",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Monochrome",
+    "plugin": "SketchUp",
+    "description": "Face style: monochrome",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Move",
+    "plugin": "SketchUp",
+    "description": "Move, copy or stretch",
+    "aliases": [
+      "M"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "New",
+    "plugin": "SketchUp",
+    "description": "New model",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Offset",
+    "plugin": "SketchUp",
+    "description": "Offset edges of a face",
+    "aliases": [
+      "F"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Open",
+    "plugin": "SketchUp",
+    "description": "Open a model",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Orbit",
+    "plugin": "SketchUp",
+    "description": "Orbit the camera",
+    "aliases": [
+      "O"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Paint",
+    "plugin": "SketchUp",
+    "description": "Paint bucket",
+    "aliases": [
+      "B"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Pan",
+    "plugin": "SketchUp",
+    "description": "Pan the camera",
+    "aliases": [
+      "H"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Parallel",
+    "plugin": "SketchUp",
+    "description": "Camera: parallel projection",
+    "aliases": [
+      "Ortho"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Paste",
+    "plugin": "SketchUp",
+    "description": "Paste with the Move tool",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Perspective",
+    "plugin": "SketchUp",
+    "description": "Camera: perspective projection",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Pie",
+    "plugin": "SketchUp",
+    "description": "Draw a pie-shaped face",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Polygon",
+    "plugin": "SketchUp",
+    "description": "Draw regular polygons",
+    "aliases": [
+      "Poly"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "PositionCamera",
+    "plugin": "SketchUp",
+    "description": "Place the camera at eye height",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "PreviousView",
+    "plugin": "SketchUp",
+    "description": "Return to the previous camera view",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Print",
+    "plugin": "SketchUp",
+    "description": "Print the model",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Protractor",
+    "plugin": "SketchUp",
+    "description": "Measure angles, create angled guides",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Purge",
+    "plugin": "SketchUp",
+    "description": "Purge unused components, materials, tags and styles",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "PushPull",
+    "plugin": "SketchUp",
+    "description": "Extrude faces",
+    "aliases": [
+      "P"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Rectangle",
+    "plugin": "SketchUp",
+    "description": "Draw rectangles",
+    "aliases": [
+      "R",
+      "Rect"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Redo",
+    "plugin": "SketchUp",
+    "description": "Redo",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ReverseFaces",
+    "plugin": "SketchUp",
+    "description": "Reverse selected faces",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Right",
+    "plugin": "SketchUp",
+    "description": "Standard view: right",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Rotate",
+    "plugin": "SketchUp",
+    "description": "Rotate or copy around a center",
+    "aliases": [
+      "Q"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "RotatedRectangle",
+    "plugin": "SketchUp",
+    "description": "Draw a rectangle at any angle by 3 points",
+    "aliases": [
+      "Rect3"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "RubyConsole",
+    "plugin": "SketchUp",
+    "description": "Show the Ruby console",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Save",
+    "plugin": "SketchUp",
+    "description": "Save the model",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Scale",
+    "plugin": "SketchUp",
+    "description": "Resize or stretch",
+    "aliases": [
+      "S"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "SceneAdd",
+    "plugin": "SketchUp",
+    "description": "Add a scene",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "SceneDelete",
+    "plugin": "SketchUp",
+    "description": "Delete the current scene",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "SceneNext",
+    "plugin": "SketchUp",
+    "description": "Go to the next scene",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ScenePrevious",
+    "plugin": "SketchUp",
+    "description": "Go to the previous scene",
+    "aliases": [
+      "ScenePrev"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "SceneUpdate",
+    "plugin": "SketchUp",
+    "description": "Update the current scene",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "SectionPlane",
+    "plugin": "SketchUp",
+    "description": "Place a section plane",
+    "aliases": [
+      "Section"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Select",
+    "plugin": "SketchUp",
+    "description": "Selection tool",
+    "aliases": [
+      "Sel"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "SelectAll",
+    "plugin": "SketchUp",
+    "description": "Select everything in the current context",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "SelectNone",
+    "plugin": "SketchUp",
+    "description": "Clear the selection",
+    "aliases": [
+      "Deselect"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Shaded",
+    "plugin": "SketchUp",
+    "description": "Face style: shaded",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ShadedTextures",
+    "plugin": "SketchUp",
+    "description": "Face style: shaded with textures",
+    "aliases": [
+      "Textured"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "TagTool",
+    "plugin": "SketchUp",
+    "description": "Apply tags to entities by clicking",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Tape",
+    "plugin": "SketchUp",
+    "description": "Measure distances, create guides",
+    "aliases": [
+      "T",
+      "Measure"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Text",
+    "plugin": "SketchUp",
+    "description": "Insert text with a leader",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Text3D",
+    "plugin": "SketchUp",
+    "description": "Insert 3D text",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ToggleAxes",
+    "plugin": "SketchUp",
+    "description": "Show or hide model axes",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ToggleBackEdges",
+    "plugin": "SketchUp",
+    "description": "Back edges on or off",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ToggleFog",
+    "plugin": "SketchUp",
+    "description": "Fog on or off",
+    "aliases": [
+      "Fog"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ToggleGuides",
+    "plugin": "SketchUp",
+    "description": "Show or hide guides",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ToggleHidden",
+    "plugin": "SketchUp",
+    "description": "Show or hide hidden geometry",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ToggleHiddenObjects",
+    "plugin": "SketchUp",
+    "description": "Show or hide hidden groups and components",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ToggleSectionCuts",
+    "plugin": "SketchUp",
+    "description": "Show or hide section cuts",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ToggleSectionPlanes",
+    "plugin": "SketchUp",
+    "description": "Show or hide section planes",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ToggleShadows",
+    "plugin": "SketchUp",
+    "description": "Shadows on or off",
+    "aliases": [
+      "Shadows"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ToggleXRay",
+    "plugin": "SketchUp",
+    "description": "X-ray face style on or off",
+    "aliases": [
+      "XRay"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Top",
+    "plugin": "SketchUp",
+    "description": "Standard view: top",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Undo",
+    "plugin": "SketchUp",
+    "description": "Undo",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Unhide",
+    "plugin": "SketchUp",
+    "description": "Unhide selected hidden entities",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "UnhideAll",
+    "plugin": "SketchUp",
+    "description": "Unhide everything in the current context",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Walk",
+    "plugin": "SketchUp",
+    "description": "Walk through the model",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Wireframe",
+    "plugin": "SketchUp",
+    "description": "Face style: wireframe",
+    "aliases": [
+
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "Zoom",
+    "plugin": "SketchUp",
+    "description": "Zoom the camera",
+    "aliases": [
+      "Z"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ZoomExtents",
+    "plugin": "SketchUp",
+    "description": "Zoom to the whole model",
+    "aliases": [
+      "ZE"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ZoomSelected",
+    "plugin": "SketchUp",
+    "description": "Zoom to the selection",
+    "aliases": [
+      "ZS"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  },
+  {
+    "id": "ZoomWindow",
+    "plugin": "SketchUp",
+    "description": "Zoom to a window",
+    "aliases": [
+      "ZW"
+    ],
+    "builtin": true,
+    "params": [
+
+    ]
+  }
+]

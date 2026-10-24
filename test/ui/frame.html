@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <script>document.write('<link rel="stylesheet" href="../../src/exterminatus/html/terminal.css?t=' + Date.now() + '">');</script>
+</head>
+<body class="mode-bar">
+  <!-- Разметка как в src/exterminatus/html/index.html; при её изменении обновить. -->
+  <main class="terminal" aria-label="Command terminal" aria-busy="false">
+    <div id="busy" role="progressbar" aria-label="Working"></div>
+    <div id="log" role="log" aria-label="Command output" aria-live="polite" tabindex="0"></div>
+    <div class="command">
+      <div id="prompt" class="is-hidden">
+        <span class="prompt__text"></span>
+        <span class="prompt__default"></span>
+        <span class="prompt__options"></span>
+      </div>
+      <div class="entry">
+        <input id="input" type="text" placeholder="Command" aria-label="Command" role="combobox"
+               aria-autocomplete="list" aria-controls="suggest" aria-expanded="false" autocomplete="off" spellcheck="false">
+        <span id="input-hint" class="input-hint is-hidden">Enter — repeat last</span>
+      </div>
+    </div>
+    <div id="suggest" class="is-hidden" role="listbox" aria-label="Command suggestions"></div>
+  </main>
+  <script>
+    // Заглушка Ruby: каталог настоящий (catalog.json выгружен из SketchUp),
+    // исполнение — игрушечное: PathCopy спрашивает параметры, остальное «выполняется».
+    var mode = new URLSearchParams(location.search).get('mode') || 'bar';
+    var state = { prompt: null, mode: 'Fit', count: 10 };
+    function pcPrompt() {
+      return { command: 'PathCopy', text: 'Step', default: '500 mm', values: [],
+               options: [{ name: 'Mode', value: state.mode }, { name: 'Count', value: String(state.count) }, { name: 'Align', value: 'Yes' }] };
+    }
+    window.sketchup = {
+      ready: function () {
+        fetch('catalog.json').then(function (r) { return r.json(); }).then(function (cat) {
+          cat.push({ id: 'PathCopy', plugin: 'PathCopy Advanced', description: 'Copy the selected object along a path', aliases: ['PC'], params: [] });
+          T.init({ mode: mode, commands: cat, history: ['Top', 'ZoomExtents', 'PushPull'],
+                   log: mode === 'bar' ? [{ kind: 'echo', text: 'Top; ZoomExtents' }, { kind: 'result', text: 'Shadows on' },
+                                          { kind: 'error', text: 'ZoomSelected: select something first' }] : [],
+                   prompt: null });
+        });
+      },
+      submit: function (line) {
+        var log = [];
+        if (state.prompt) {
+          log.push({ kind: 'echo', text: 'Step: ' + (line || '500 mm') });
+          log.push({ kind: 'result', text: '12 copies along the path' });
+          state.prompt = null;
+        } else if (/^pathcopy/i.test(line.trim())) {
+          log.push({ kind: 'echo', text: line });
+          state.prompt = pcPrompt();
+        } else if (line.trim()) {
+          log.push({ kind: 'echo', text: line });
+          if (/^frob/i.test(line)) log.push({ kind: 'error', text: 'Unknown command: ' + line + '.' });
+        }
+        setTimeout(function () { T.update({ log: log, prompt: state.prompt, idle: true }); }, 150);
+      },
+      option: function (name) {
+        if (name === 'Mode') state.mode = state.mode === 'Fit' ? 'Step' : (state.mode === 'Step' ? 'Count' : 'Fit');
+        state.prompt = pcPrompt();
+        T.update({ prompt: state.prompt, idle: true });
+      },
+      cancel: function () {
+        state.prompt = null;
+        T.update({ log: [{ kind: 'info', text: 'PathCopy cancelled' }], prompt: null, idle: true });
+      },
+      dismiss: function () {},
+      height: function (h) { parent.postMessage({ height: h }, '*'); }
+    };
+  </script>
+  <script>document.write('<script src="../../src/exterminatus/html/terminal.js?t=' + Date.now() + '"><\/script>');</script>
+</body>
+</html>

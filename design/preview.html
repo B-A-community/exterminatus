@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terminal — visual states</title>
+  <link rel="stylesheet" href="terminal.css">
+  <style>
+    body {
+      min-width: 280px;
+      background: var(--preview-ground);
+    }
+
+    .preview-header {
+      padding: var(--space-4) var(--space-5);
+      border-bottom: var(--stroke) solid var(--border);
+      background: var(--panel);
+    }
+
+    h1 {
+      margin: 0;
+      font: inherit;
+      font-weight: var(--weight-strong);
+    }
+
+    .preview-header p {
+      margin: var(--space-1) 0 0;
+      color: var(--muted);
+    }
+
+    main {
+      max-width: var(--preview-width);
+      margin: 0 auto;
+      padding: var(--preview-gap) var(--space-5);
+    }
+
+    .comparison {
+      margin-bottom: var(--preview-gap);
+    }
+
+    h2 {
+      margin: 0 0 var(--space-3);
+      font: inherit;
+      font-weight: var(--weight-strong);
+    }
+
+    .comparison__windows {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: var(--space-5);
+    }
+
+    figure {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      margin: 0;
+    }
+
+    .example--bar {
+      flex: 1 1 var(--preview-bar-width);
+      max-width: var(--preview-bar-width);
+    }
+
+    .example--popup {
+      flex: 1 1 var(--preview-popup-width);
+      max-width: var(--preview-popup-width);
+    }
+
+    figcaption {
+      padding-bottom: var(--space-2);
+      color: var(--muted);
+    }
+
+    .viewport {
+      position: relative;
+      flex: 1;
+      min-height: 180px;
+      padding: var(--space-5) var(--space-3);
+      overflow: hidden;
+      background: linear-gradient(
+        var(--preview-sky) 0 32%,
+        var(--preview-ground) 32% 100%
+      );
+    }
+
+    .viewport::before,
+    .viewport::after {
+      position: absolute;
+      content: "";
+      pointer-events: none;
+    }
+
+    .viewport::before {
+      right: 12%;
+      bottom: 22px;
+      width: 108px;
+      height: 48px;
+      border: var(--stroke) solid var(--preview-edge);
+      background: var(--preview-face);
+      transform: skewY(-15deg);
+    }
+
+    .viewport::after {
+      right: calc(12% - 30px);
+      bottom: 22px;
+      width: 30px;
+      height: 48px;
+      border: var(--stroke) solid var(--preview-edge);
+      background: var(--preview-side);
+      transform: skewY(30deg);
+    }
+
+    iframe {
+      position: relative;
+      z-index: 1;
+      display: block;
+      width: 100%;
+      border: 0;
+      background: var(--panel);
+    }
+
+    .preview-footer {
+      padding: var(--space-4) var(--space-5);
+      border-top: var(--stroke) solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header class="preview-header">
+    <h1>Terminal — visual states</h1>
+    <p>Static examples · Bar and popup · Client area only · No command execution</p>
+  </header>
+
+  <main id="examples"></main>
+
+  <noscript>
+    <p>This preview uses a small script to assemble independent static frames.</p>
+  </noscript>
+
+  <footer class="preview-footer">
+    Illustrative viewport. Window chrome is supplied by SketchUp.
+    Command IDs and plugin names below are sample data.
+  </footer>
+
+  <script>
+    // Preview assembly only: no terminal handlers, Ruby bridge or commands.
+    // Each iframe has its own document, so contract IDs remain unique.
+    const escapeHTML = value => String(value).replace(/[&<>"']/g, char => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;",
+      '"': "&quot;", "'": "&#39;"
+    })[char]);
+
+    const stylesheet = new URL("terminal.css", document.baseURI).href;
+
+    const promptContent = `
+      <span class="prompt__text">Step</span>
+      <span class="prompt__default">&lt;500 mm&gt;</span>
+      <span class="prompt__options">(
+        <span class="opt" data-opt="Count" role="button" tabindex="0">
+          <span class="opt__name">Count</span><span class="opt__value">=10</span>
+        </span>
+        <span class="opt" data-opt="Mode" role="button" tabindex="0">
+          <span class="opt__name">Mode</span><span class="opt__value">=Fit</span>
+        </span>
+        <span class="opt" data-opt="Undo" role="button" tabindex="0">
+          <span class="opt__name">Undo</span>
+        </span>
+      ):</span>`;
+
+    const suggestions = [
+      ["BA.Array", "B&A community", "Copy selection at a fixed step."],
+      ["BA.ArrayAlongPath", "B&A community", "Distribute copies along a selected path."],
+      ["BA.ArrayGrid", "B&A community", "Create rows and columns of copies."],
+      ["SU.Arc", "SketchUp", "Draw an arc."]
+    ];
+
+    const states = [
+      {
+        title: "01 · Empty",
+        hint: true,
+        barHeight: 110,
+        popupHeight: 38
+      },
+      {
+        title: "02 · Autocomplete",
+        value: "ar",
+        suggest: true,
+        lines: [["info", "Type a command or choose a suggestion."]],
+        barHeight: 220,
+        popupHeight: 207
+      },
+      {
+        title: "03 · Parameter",
+        parameter: true,
+        lines: [
+          ["echo", "> BA.Array"],
+          ["info", "12 components selected."]
+        ],
+        barHeight: 110,
+        popupHeight: 64
+      },
+      {
+        title: "04 · Feedback and log",
+        feedback: true,
+        lines: [
+          ["echo", "> BA.Array"],
+          ["info", "12 components selected."],
+          ["result", "Created 10 copies."],
+          ["error", "Error: Step must be greater than 0."]
+        ],
+        barHeight: 110,
+        popupHeight: 61
+      },
+      {
+        title: "05 · Result",
+        feedback: true,
+        lines: [
+          ["echo", "> BA.Array"],
+          ["result", "Created 10 copies."]
+        ],
+        barHeight: 110,
+        popupHeight: 61
+      },
+      {
+        title: "06 · Running",
+        busy: true,
+        feedback: true,
+        value: "BA.ArrayAlongPath",
+        lines: [
+          ["echo", "> BA.ArrayAlongPath"],
+          ["info", "Creating copies…"]
+        ],
+        barHeight: 110,
+        popupHeight: 61
+      },
+      {
+        title: "07 · Long parameter / narrow window",
+        parameter: true,
+        narrow: true,
+        lines: [["info", "Enter a step or change an option."]],
+        barHeight: 140,
+        popupHeight: 88
+      }
+    ];
+
+    function renderSuggestions() {
+      return suggestions.map(([id, plugin, description], index) => {
+        const marked = escapeHTML(id).replace(/ar/i, match => `<mark>${match}</mark>`);
+        return `
+          <div id="demo-option-${index}" class="sg ${index === 0 ? "sg--active" : ""}"
+               role="option" aria-selected="${index === 0}">
+            <span class="sg__id">${marked}</span>
+            <span class="sg__plugin">${escapeHTML(plugin)}</span>
+            <span class="sg__desc">${escapeHTML(description)}</span>
+          </div>`;
+      }).join("");
+    }
+
+    function frameDocument(mode, state) {
+      const lines = (state.lines || []).map(([type, text]) =>
+        `<div class="line line--${type}">${escapeHTML(text)}</div>`
+      ).join("");
+
+      const prompt = state.narrow
+        ? promptContent.replace("Step</span>", "Distance between copies</span>")
+        : promptContent;
+
+      return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${escapeHTML(state.title)} — ${mode}</title>
+  <link rel="stylesheet" href="${escapeHTML(stylesheet)}">
+</head>
+<body class="mode-${mode}${state.busy ? " is-busy" : ""}${state.feedback ? " has-result" : ""}">
+  <main class="terminal" aria-label="Command terminal" aria-busy="${!!state.busy}">
+    <div id="busy" role="progressbar" aria-label="Working"></div>
+    <div id="log" role="log" aria-label="Command output" tabindex="0">${lines}</div>
+    <div class="command">
+      <div id="prompt" class="${state.parameter ? "" : "is-hidden"}">
+        ${state.parameter ? prompt : ""}
+      </div>
+      <div class="entry">
+        <input id="input" type="text" placeholder="Command"
+               value="${escapeHTML(state.value || "")}"
+               aria-label="${state.parameter ? "Step" : "Command"}"
+               aria-describedby="prompt input-hint"
+               role="combobox" aria-autocomplete="list"
+               aria-controls="suggest" aria-expanded="${!!state.suggest}"
+               ${state.suggest ? 'aria-activedescendant="demo-option-0"' : ""}
+               autocomplete="off" spellcheck="false"
+               ${state.busy ? "disabled" : ""}>
+        <span id="input-hint" class="input-hint${state.hint ? "" : " is-hidden"}">
+          Enter — repeat last
+        </span>
+      </div>
+    </div>
+    <div id="suggest" class="${state.suggest ? "" : "is-hidden"}"
+         role="listbox" aria-label="Command suggestions">
+      ${state.suggest ? renderSuggestions() : ""}
+    </div>
+  </main>
+</body>
+</html>`;
+    }
+
+    const examples = document.getElementById("examples");
+
+    for (const state of states) {
+      const section = document.createElement("section");
+      section.className = "comparison";
+
+      const heading = document.createElement("h2");
+      heading.textContent = state.title;
+      section.append(heading);
+
+      const windows = document.createElement("div");
+      windows.className = "comparison__windows";
+
+      for (const mode of ["bar", "popup"]) {
+        const figure = document.createElement("figure");
+        figure.className = `example--${mode}`;
+        if (state.narrow) figure.style.maxWidth = "320px";
+
+        const caption = document.createElement("figcaption");
+        caption.textContent = mode === "bar"
+          ? `Bar · ${state.barHeight}px high${state.suggest ? " · expanded" : ""}`
+          : `Popup · ${state.popupHeight}px high${state.feedback ? " · last line only" : ""}`;
+
+        const viewport = document.createElement("div");
+        viewport.className = "viewport";
+
+        const frame = document.createElement("iframe");
+        frame.title = `${mode}: ${state.title}`;
+        frame.height = mode === "bar" ? state.barHeight : state.popupHeight;
+        frame.srcdoc = frameDocument(mode, state);
+
+        viewport.append(frame);
+        figure.append(caption, viewport);
+        windows.append(figure);
+      }
+
+      section.append(windows);
+      examples.append(section);
+    }
+  </script>
+</body>
+</html>
