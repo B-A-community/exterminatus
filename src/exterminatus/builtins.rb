@@ -38,7 +38,6 @@ module BACommunity
         ['Rotate',           %w[Q],        'Rotate or copy around a center',               'selectRotateTool:'],
         ['Scale',            %w[S],        'Resize or stretch',                            'selectScaleTool:'],
         ['Flip',             %w[],         'Flip or mirror selected entities',             'selectFlipTool:'],
-        ['PushPull',         %w[P],        'Extrude faces',                                'selectPushPullTool:'],
         ['FollowMe',         %w[],         'Extrude a face along a path',                  'selectExtrudeTool:'],
         ['Offset',           %w[F],        'Offset edges of a face',                       'selectOffsetTool:'],
         # Камера
@@ -153,6 +152,19 @@ module BACommunity
         # ---------- команды через Ruby API ----------
 
         def register_ruby
+          # С числом — как Rhino: выдавить выделенные грани сразу; без числа —
+          # обычный инструмент SketchUp.
+          add('PushPull', %w[P], 'Extrude faces; with a distance, extrude the selected faces',
+              [{ key: :distance, type: :length, optional: true }]) do |args|
+            next send_action('PushPull', 'selectPushPullTool:') if args[:distance].nil?
+
+            faces = selection.grep(Sketchup::Face)
+            next({ ok: false, message: 'select faces first' }) if faces.empty?
+
+            operation('Push/Pull') { faces.each { |f| f.pushpull(args[:distance]) if f.valid? } }
+            "#{faces.size} #{faces.size == 1 ? 'face' : 'faces'} pushed #{args[:distance].to_l}"
+          end
+
           add('ZoomSelected', %w[ZS], 'Zoom to the selection') do
             next({ ok: false, message: "select something first" }) if selection.empty?
 

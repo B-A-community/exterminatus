@@ -11,7 +11,9 @@ module BACommunity
     #   :option  — одно из values; клик по опции перебирает значения по кругу
     #   :bool    — Yes/No; клик переключает
     # prompt: true — спрашивается по очереди; false — только опцией в строке
-    # приглашения (как Mode=Fit у Rhino).
+    # приглашения (как Mode=Fit у Rhino). optional: true — только из строки
+    # команды, никогда не спрашивается и не запоминается: без него команда
+    # делает другое (PushPull без числа включает инструмент).
     class Param
       TYPES = %i[length number integer angle string option bool].freeze
       TRUE_WORDS  = %w[yes y true on 1].freeze
@@ -27,6 +29,7 @@ module BACommunity
         @values = Array(spec[:values]).map(&:to_s)
         @default = spec[:default]
         @prompt = spec.key?(:prompt) ? spec[:prompt] : true
+        @optional = spec[:optional] ? true : false
         @min = spec[:min]
         @max = spec[:max]
         @description = spec[:description]
@@ -37,7 +40,11 @@ module BACommunity
       end
 
       def prompt?
-        @prompt ? true : false
+        @prompt && !@optional ? true : false
+      end
+
+      def optional?
+        @optional
       end
 
       # Опции и флаги меняются кликом без ввода значения.
@@ -96,7 +103,8 @@ module BACommunity
       end
 
       def to_h
-        { key: @key, name: @name, type: @type, values: @values, prompt: prompt?, description: @description }
+        { key: @key, name: @name, type: @type, values: @values, prompt: prompt?, optional: optional?,
+          description: @description }
       end
 
       private

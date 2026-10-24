@@ -2,7 +2,7 @@
 
 module BACommunity
   module Terminal
-    %w[params registry session window builtins api]
+    %w[params registry session window builtins shortcut api]
       .each { |file| Sketchup.require(File.join(__dir__, file)) }
 
     # Приглашение с tool: true снимается, когда пользователь сменил инструмент.
@@ -70,7 +70,7 @@ module BACommunity
 
       terminal = UI::Command.new('Terminal') { Window.invoke }
       terminal.tooltip = 'Terminal'
-      terminal.status_bar_text = 'Type a command. Assign a shortcut in Preferences > Shortcuts.'
+      terminal.status_bar_text = 'Type a command. Shortcut: Extensions > Exterminatus > Assign Shortcut…'
 
       bar = UI::Command.new('Command Bar') { Window.toggle_bar }
       bar.tooltip = 'Command Bar'
@@ -80,9 +80,12 @@ module BACommunity
       menu = UI.menu('Extensions').add_submenu(PLUGIN_NAME)
       menu.add_item(terminal)
       menu.add_item(bar)
+      menu.add_separator
+      menu.add_item('Assign Shortcut…') { Shortcut.show }
 
       watch(Sketchup.active_model)
       Sketchup.add_observer(AppWatch.new)
+      UI.start_timer(2, false) { Shortcut.report_pending }
     end
   end
 end

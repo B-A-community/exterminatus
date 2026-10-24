@@ -250,11 +250,11 @@ module BACommunity
           defaults = cmd.params.reject { |p| args.key?(p.key) }
           defaults.each { |p| args[p.key] = last_value(cmd, p) }
           ask = if tokens.empty?
-                  cmd.params.select { |p| p.prompt? || args[p.key].nil? }
+                  cmd.params.select { |p| !p.optional? && (p.prompt? || args[p.key].nil?) }
                 else
-                  defaults.select { |p| args[p.key].nil? }
+                  defaults.select { |p| !p.optional? && args[p.key].nil? }
                 end
-          confirm = tokens.empty? && ask.empty? && cmd.params.any?
+          confirm = tokens.empty? && ask.empty? && cmd.params.any? { |p| !p.optional? }
           @run = Run.new(cmd, args, ask, nil, confirm)
           advance
         end
@@ -317,7 +317,7 @@ module BACommunity
         def execute
           run = @run
           @run = nil
-          run.cmd.params.each { |p| @last_values[run.cmd.id][p.key] = run.args[p.key] }
+          run.cmd.params.each { |p| @last_values[run.cmd.id][p.key] = run.args[p.key] unless p.optional? }
           res = invoke(run.cmd, run.args)
           report(run.cmd, res)
           # send_action SketchUp выполняет позже, в своём цикле сообщений:
@@ -438,12 +438,12 @@ module BACommunity
         end
 
         def option_params
-          @run.cmd.params.reject(&:prompt?)
+          @run.cmd.params.reject { |p| p.prompt? || p.optional? }
         end
 
         def last_value(cmd, param)
           values = @last_values[cmd.id]
-          values.key?(param.key) ? values[param.key] : param.coerce_default
+          values.key?(param.key) && !param.optional? ? values[param.key] : param.coerce_default
         end
 
         def echo_answer(param, text)
