@@ -12,11 +12,8 @@ module BACommunity
       # id, синонимы, описание, действие
       ACTIONS = [
         # Рисование
-        ['Line',             %w[L],        'Draw edges and lines',                         'selectLineTool:'],
         ['Freehand',         %w[],         'Draw freehand curves',                         'selectFreehandTool:'],
-        ['Rectangle',        %w[R Rect],   'Draw rectangles',                              'selectRectangleTool:'],
         ['RotatedRectangle', %w[Rect3],    'Draw a rectangle at any angle by 3 points',    'selectRectangle3PointTool:'],
-        ['Circle',           %w[C],        'Draw circles from center and radius',          'selectCircleTool:'],
         ['Polygon',          %w[Poly],     'Draw regular polygons',                        'selectPolygonTool:'],
         ['Arc',              %w[A],        'Draw an arc by endpoints and bulge',           'selectArcTool:'],
         ['ArcCenter',        %w[],         'Draw an arc by center, radius and end point',  'selectArc3PointTool:'],
@@ -89,12 +86,14 @@ module BACommunity
           end
           register_ruby
           register_modify
+          register_draw
         end
 
         private
 
-        def add(id, aliases, description, params = [], preview: nil, &run)
-          spec = { id: id, plugin: PLUGIN, description: description, aliases: aliases, params: params, preview: preview }
+        def add(id, aliases, description, params = [], preview: nil, repeat: nil, &run)
+          spec = { id: id, plugin: PLUGIN, description: description, aliases: aliases, params: params,
+                   preview: preview, repeat: repeat }
           _cmd, err = Registry.add(spec, run, builtin: true)
           warn "Exterminatus: #{err}" if err
         end

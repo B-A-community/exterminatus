@@ -46,11 +46,13 @@ module BACommunity
         @pick = spec[:pick]
         @ask_if = spec[:ask_if]
         @kinds = Array(spec[:kinds])
+        @custom = spec[:parse]
 
         raise ArgumentError, "parameter name must be Latin letters and digits: #{@name.inspect}" unless @name.match?(NAME_PATTERN)
         raise ArgumentError, "#{@name}: unknown type #{@type.inspect}" unless TYPES.include?(@type)
         raise ArgumentError, "#{@name}: type :option needs values" if @type == :option && @values.empty?
         raise ArgumentError, "#{@name}: pick must respond to call" if @pick && !@pick.respond_to?(:call)
+        raise ArgumentError, "#{@name}: parse must respond to call" if @custom && !@custom.respond_to?(:call)
       end
 
       def prompt?
@@ -111,10 +113,17 @@ module BACommunity
       end
 
       # Текст → [значение, nil] или [nil, текст ошибки]. ctx: base — точка, от
-      # которой считаются «@…» и голое число; cursor — точка под курсором.
+      # которой считаются «@…» и голое число; cursor — точка под курсором;
+      # args — уже известные значения команды (для parse:).
       def parse(text, ctx = {})
         s = text.to_s.strip
         return [nil, nil] if auto? && s.casecmp?(AUTO)
+
+        # Свой разбор (parse: ->(text, args) { value или nil }); nil — обычный.
+        if @custom && !s.empty?
+          value = @custom.call(s, ctx[:args] || {})
+          return [value, nil] unless value.nil?
+        end
         return [nil, "#{name}: select objects in the model, then press Enter"] if selection?
         return [nil, "#{name}: value expected"] if s.empty? && @type != :string
 

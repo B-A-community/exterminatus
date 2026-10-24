@@ -23,7 +23,9 @@ module BACommunity
     # Исполнитель: разбирает строку, спрашивает параметры, запускает команды,
     # ведёт вывод и историю. Окна только показывают его состояние.
     module Session
-      Run = Struct.new(:cmd, :args, :ask, :sub, :confirm)
+      # repeat — повтор команды с repeat: (Line идёт дальше от последней точки);
+      # interactive — команда набрана без аргументов (только тогда она повторяется).
+      Run = Struct.new(:cmd, :args, :ask, :sub, :confirm, :repeat, :interactive)
       External = Struct.new(:text, :default, :options, :tool_id, :block)
 
 
@@ -39,6 +41,7 @@ module BACommunity
       end
 
       @log ||= []
+      @normals = {}
       @seq ||= 0
       # Перечитывание файла (test/reload.rb) сбрасывает выполнение целиком.
       @queue = []
@@ -88,8 +91,12 @@ module BACommunity
           end
         end
 
-        def cancel
-          if @run
+        # undo: true — Undo во время команды: её точки уже не соответствуют
+        # модели, поэтому отменяется и повтор, и остаток цепочки.
+        def cancel(undo: false)
+          if @run&.repeat && !undo
+            finish_repeat
+          elsif @run
             emit(:info, "#{@run.cmd.id} cancelled")
             @run = nil
             @queue.clear
@@ -149,10 +156,12 @@ module BACommunity
           @last_values.delete(id.to_s)
         end
 
-        # Клик в модели ответил на текущий вопрос.
-        def picked(param, value)
+        # Клик в модели ответил на текущий вопрос. normal — нормаль грани под
+        # кликом: Rectangle и Circle ложатся на неё (Plane=Auto).
+        def picked(param, value, normal = nil)
           return unless @run && current_param.equal?(param)
 
+          @normals[param.key] = normal
           @run.args[param.key] = value
           echo_answer(param, param.format(value))
           accept
@@ -186,6 +195,12 @@ module BACommunity
             line << " ( #{opts.join('  ')} )"
           end
           line
+        end
+
+        # Нормаль грани под кликом, которым ответили на параметр key текущей
+        # (или только что выполненной) команды; nil — точку ввели с клавиатуры.
+        def clicked_normal(key)
+          @normals[key]
         end
 
         def busy?
@@ -276,6 +291,7 @@ module BACommunity
         end
 
         def start(tokens)
+          @normals = {}
           tokens = tokens.dup
           name = tokens.shift
           cmd, similar = Registry.resolve(name)
@@ -300,7 +316,7 @@ module BACommunity
           end
           confirm = tokens.empty? && ask.none? { |p| !p.selection? } &&
                     cmd.params.any? { |p| !p.optional? && !p.selection? && p.wanted?(args) }
-          @run = Run.new(cmd, args, ask, nil, confirm)
+          @run = Run.new(cmd, args, ask, nil, confirm, false, tokens.empty?)
           advance
         end
 
@@ -321,6 +337,7 @@ module BACommunity
           if text.empty?
             return execute_confirmed if param.nil?
             return take_selection(param) if param.selection?
+            return finish_repeat if @run.repeat && @run.args[param.key].nil?
             return emit(:error, "#{param.name}: value required") if @run.args[param.key].nil? && !param.auto?
 
             echo_answer(param, param.format(@run.args[param.key]))
@@ -331,10 +348,11 @@ module BACommunity
           return choose_option(opt) if opt
           return emit(:error, 'Press Enter to run, Esc to cancel, or click an option') if param.nil?
 
-          value, err = param.parse(text, base: point_base(param), cursor: Picker.cursor)
+          value, err = param.parse(text, base: point_base(param), cursor: Picker.cursor, args: resolved(@run))
           return emit(:error, err) if err
 
           @run.args[param.key] = value
+          @normals.delete(param.key)
           echo_answer(param, param.format(value))
           accept
         end
@@ -368,8 +386,11 @@ module BACommunity
           @run = nil
           Picker.stop
           run.cmd.params.each { |p| @last_values[run.cmd.id][p.key] = run.args[p.key] if p.remember? }
-          res = invoke(run.cmd, resolved(run))
+          args = resolved(run)
+          res = invoke(run.cmd, args)
           report(run.cmd, res)
+          return restart(run, args) if run.cmd.repeat && run.interactive && succeeded?(res)
+
           # send_action SketchUp выполняет позже, в своём цикле сообщений:
           # остаток цепочки ждёт, иначе «Hide; SelectNone» снимет выделение
           # раньше, чем скроет.
@@ -420,6 +441,40 @@ module BACommunity
           when false
             fail_chain("#{cmd.id} failed")
           end
+        end
+
+        def succeeded?(res)
+          return false if res == false
+          return res[:ok] != false && res['ok'] != false if res.is_a?(Hash)
+
+          true
+        end
+
+        # Та же команда ещё раз: repeat: ->(args) { { start: args[:finish] } }
+        # задаёт готовые значения, остальное спрашивается заново. Пустой Enter
+        # или Esc заканчивает повтор без сообщения об отмене.
+        def restart(run, args)
+          preset = run.cmd.repeat.call(args) || {}
+          values = {}
+          run.cmd.params.each do |p|
+            values[p.key] = if preset.key?(p.key) then preset[p.key]
+                            elsif p.remember? then last_value(run.cmd, p)
+                            elsif p.selection? then p.selected
+                            end
+          end
+          ask = run.cmd.params.select { |p| !p.optional? && values[p.key].nil? && !p.auto? && p.wanted?(values) }
+          return finish_repeat if ask.empty? # спрашивать нечего — иначе круг без конца
+
+          @run = Run.new(run.cmd, values, ask, nil, false, true, true)
+          advance
+          Window.sync
+        end
+
+        def finish_repeat
+          @run = nil
+          Picker.stop
+          drain
+          Window.sync
         end
 
         def fail_chain(message)
@@ -521,8 +576,8 @@ module BACommunity
 
         # Позиционные значения идут по порядку параметров, именованные —
         # Name=value в любом месте.
-        # Сначала раскладываем текст по параметрам, потом разбираем в порядке
-        # params: «to=@100,0,0 from=0,0,0» знает from, когда считает to.
+        # Сначала раскладываем текст по параметрам, потом разбираем:
+        # «to=@100,0,0 from=0,0,0» знает from, когда считает to.
         def bind(cmd, tokens)
           raw = {}
           positional = []
@@ -544,11 +599,15 @@ module BACommunity
           end
 
           positional.each_with_index { |tok, i| raw[free[i]] = tok }
+          # Зависимые (base:) — последними: им нужны остальные значения.
+          # parse: видит и значения, которые подставятся без вопроса (Plane=XZ
+          # с прошлого раза).
           args = {}
-          cmd.params.each do |param|
+          known = cmd.params.to_h { |p| [p.key, p.selection? ? nil : last_value(cmd, p)] }
+          cmd.params.partition { |p| p.base.nil? }.flatten.each do |param|
             next unless raw.key?(param)
 
-            value, err = param.parse(raw[param], base: args[param.base])
+            value, err = param.parse(raw[param], base: args[param.base], args: known.merge(args))
             return [nil, err] if err
 
             args[param.key] = value

@@ -2,7 +2,7 @@
 
 module BACommunity
   module Terminal
-    %w[params registry session picker window builtins modify shortcut api]
+    %w[params registry session picker window builtins modify draw shortcut api]
       .each { |file| Sketchup.require(File.join(__dir__, file)) }
 
     # Приглашение с tool: true снимается, когда пользователь сменил инструмент.

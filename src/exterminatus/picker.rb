@@ -63,7 +63,7 @@ module BACommunity
         # 0 — Esc, 2 — Undo: после отмены точки и выделение команды уже не
         # соответствуют модели, поэтому команда отменяется.
         def onCancel(reason, _view)
-          viewport { Session.cancel } if [0, 2].include?(reason)
+          viewport { Session.cancel(undo: reason == 2) } if [0, 2].include?(reason)
         end
 
         def enableVCB?
@@ -133,7 +133,9 @@ module BACommunity
         def onLButtonDown(flags, x, y, view)
           onMouseMove(flags, x, y, view)
           value = live_value
-          viewport { Session.picked(@param, value) } unless value.nil?
+          return if value.nil?
+
+          viewport { Session.picked(@param, value, face_normal) }
         end
 
         def draw(view)
@@ -159,6 +161,11 @@ module BACommunity
         end
 
         private
+
+        def face_normal
+          face = @ip.face or return nil
+          face.normal.transform(@ip.transformation).normalize
+        end
 
         def live_value
           return nil unless @cursor
