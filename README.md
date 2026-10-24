@@ -139,6 +139,11 @@ BACommunity::Terminal.register(id: 'RalFan', plugin: 'RALNCS',
 приглашениями из инструментов и чек-листом — в
 [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md).
 
+## Установка
+
+Window → Extension Manager → Install Extension → `exterminatus-0.1.0.rbz`.
+Пакет собирается из `src/`: `python build_rbz.py` → `dist/`.
+
 ## Установка для разработки
 
 ```powershell
