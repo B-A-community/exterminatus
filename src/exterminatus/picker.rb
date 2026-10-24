@@ -258,8 +258,10 @@ module BACommunity
         end
       end
 
-      # Помощь для preview: рисование тонкими пунктирными линиями и учёт точек
-      # для getExtents (иначе SketchUp обрежет то, что вне модели).
+      # Помощь для preview и учёт точек для getExtents (иначе SketchUp обрежет
+      # то, что вне модели). Будущая геометрия (shape) — сплошной тонкой линией
+      # цвета рёбер, как у родных инструментов; призрак переносимого (box) —
+      # пунктиром.
       module Preview
         COLOR = Sketchup::Color.new(64, 64, 64)
 
@@ -276,20 +278,24 @@ module BACommunity
             @points.concat(pts)
           end
 
-          def lines(view, pts)
+          def lines(view, pts, solid: false)
             return if pts.size < 2
 
-            style(view)
+            style(view, solid)
             view.draw(GL_LINES, pts)
             note(*pts)
           end
 
-          def polyline(view, pts, closed: false)
+          def polyline(view, pts, closed: false, solid: false)
             return if pts.size < 2
 
-            style(view)
+            style(view, solid)
             view.draw(closed ? GL_LINE_LOOP : GL_LINE_STRIP, pts)
             note(*pts)
+          end
+
+          def shape(view, pts, closed: false)
+            polyline(view, pts, closed: closed, solid: true)
           end
 
           # Габарит bounds после преобразования tr.
@@ -303,10 +309,16 @@ module BACommunity
 
           private
 
-          def style(view)
+          def style(view, solid)
             view.line_width = 1
-            view.line_stipple = '-'
-            view.drawing_color = COLOR
+            view.line_stipple = solid ? '' : '-'
+            view.drawing_color = solid ? edge_color : COLOR
+          end
+
+          def edge_color
+            Sketchup.active_model.rendering_options['ForegroundColor'] || COLOR
+          rescue StandardError
+            COLOR
           end
         end
       end

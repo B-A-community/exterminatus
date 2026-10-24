@@ -346,6 +346,8 @@ module BACommunity
 
           opt = option_params.find { |p| p != param && p.name.casecmp?(text) }
           return choose_option(opt) if opt
+          return set_option(Regexp.last_match) if text.match(/\A([A-Za-z][A-Za-z0-9]*)=(.*)\z/) &&
+                                                   option_params.any? { |p| p.name.casecmp?(Regexp.last_match(1)) }
           return emit(:error, 'Press Enter to run, Esc to cancel, or click an option') if param.nil?
 
           value, err = param.parse(text, base: point_base(param), cursor: Picker.cursor, args: resolved(@run))
@@ -369,6 +371,17 @@ module BACommunity
         def execute_confirmed
           @run.confirm = false
           advance
+        end
+
+        # «Count=3» в ответ на вопрос: опция меняется, вопрос остаётся тот же.
+        def set_option(match)
+          opt = option_params.find { |p| p.name.casecmp?(match[1]) }
+          value, err = opt.parse(match[2], args: resolved(@run))
+          return emit(:error, err) if err
+
+          @run.args[opt.key] = value
+          emit(:echo, "#{opt.name}=#{opt.format(value)}")
+          Picker.follow(current_param, @run)
         end
 
         def choose_option(param)

@@ -94,7 +94,7 @@ module BACommunity
               preview: lambda { |a, view|
                 next unless a[:distance]
 
-                faces(a).each { |f| (pts = offset_loop(f, a[:distance])) && Picker::Preview.polyline(view, pts, closed: true) }
+                faces(a).each { |f| (pts = offset_loop(f, a[:distance])) && Picker::Preview.shape(view, pts, closed: true) }
               }) do |a|
             done = operation('Offset') { faces(a).count { |f| offset_face(f, a[:distance]) } }
             next({ ok: false, message: 'the offset collapses the faces' }) if done.zero?
@@ -248,8 +248,8 @@ module BACommunity
         def extrusion(view, face, d)
           base = face.outer_loop.vertices.map(&:position)
           top = base.map { |p| p.offset(face.normal, d) }
-          Picker::Preview.polyline(view, top, closed: true)
-          Picker::Preview.lines(view, base.zip(top).flatten)
+          Picker::Preview.shape(view, top, closed: true)
+          Picker::Preview.lines(view, base.zip(top).flatten, solid: true)
         end
 
         # ---------- копирование ----------

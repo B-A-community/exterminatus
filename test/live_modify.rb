@@ -159,6 +159,17 @@ errs = run.('Copy 0,1000,0 count=1')
 ok.('Copy loose face', errs.empty? && ents.grep(Sketchup::Face).size == faces_before + 1, [errs, ents.grep(Sketchup::Face).size - faces_before])
 ents.erase_entities(ents.grep(Sketchup::Face) + ents.grep(Sketchup::Edge))
 
+# Опция набором «Count=3» в ответ на вопрос: вопрос тот же, опция новая.
+sel.(g)
+S.submit('Copy')
+S.submit('Count=3')
+st = S.prompt_state
+ok.('Name=value at a prompt sets the option', st && st[:text] == 'Point to copy from' &&
+    st[:options].find { |o| o[:name] == 'Count' }&.dig(:value) == '3', st)
+errs = run.('Count=0')
+ok.('Name=value is range-checked', errs.first.to_s.include?('at least'), errs)
+S.cancel
+
 # ---------- Rotate ----------
 sel.(g)
 c0 = g.bounds.center

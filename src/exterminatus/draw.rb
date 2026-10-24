@@ -35,7 +35,7 @@ module BACommunity
                { key: :other, type: :point, label: 'Other corner or size', base: :corner,
                  parse: ->(s, a) { corner_by_size(s, a) } },
                { key: :plane, type: :option, values: PLANES, default: 'Auto', prompt: false }],
-              preview: ->(a, view) { (pts = rectangle(a)) && Picker::Preview.polyline(view, pts, closed: true) }) do |a|
+              preview: ->(a, view) { (pts = rectangle(a)) && Picker::Preview.shape(view, pts, closed: true) }) do |a|
             pts = rectangle(a) or next({ ok: false, message: 'the rectangle has no area' })
 
             operation('Rectangle') { model.active_entities.add_face(pts) }
@@ -49,7 +49,7 @@ module BACommunity
                { key: :segments, type: :integer, default: 24, min: 3, max: 999, prompt: false },
                { key: :plane, type: :option, values: PLANES, default: 'Auto', prompt: false }],
               preview: lambda { |a, view|
-                Picker::Preview.polyline(view, circle_points(a), closed: true) if a[:radius]&.positive?
+                Picker::Preview.shape(view, circle_points(a), closed: true) if a[:radius]&.positive?
               }) do |a|
             operation('Circle') do
               ents = model.active_entities
@@ -71,7 +71,7 @@ module BACommunity
                { key: :finish, type: :point, label: 'End of arc', base: :start },
                { key: :bulge, type: :length, label: 'Bulge', pick: ->(pt, a) { bulge_at(pt, a) } },
                *options],
-              preview: ->(a, view) { (spec = arc_by_bulge(a)) && Picker::Preview.polyline(view, arc_points(spec, a[:segments])) }) do |a|
+              preview: ->(a, view) { (spec = arc_by_bulge(a)) && Picker::Preview.shape(view, arc_points(spec, a[:segments])) }) do |a|
             spec = arc_by_bulge(a) or next({ ok: false, message: 'the arc needs two different ends and a bulge' })
 
             operation('Arc') { add_arc(spec, a[:segments]) }
@@ -85,7 +85,7 @@ module BACommunity
                            *options]
 
           add('ArcCenter', %w[AC], 'Draw an arc by center, start point and angle',
-              center_params, preview: ->(a, view) { (spec = arc_by_center(a)) && Picker::Preview.polyline(view, arc_points(spec, a[:segments])) }) do |a|
+              center_params, preview: ->(a, view) { (spec = arc_by_center(a)) && Picker::Preview.shape(view, arc_points(spec, a[:segments])) }) do |a|
             spec = arc_by_center(a) or next({ ok: false, message: 'the arc needs a radius and an angle' })
 
             operation('Arc') { add_arc(spec, a[:segments]) }
@@ -96,7 +96,7 @@ module BACommunity
               center_params, preview: lambda { |a, view|
                 next unless (spec = arc_by_center(a))
 
-                Picker::Preview.polyline(view, [spec[0], *arc_points(spec, a[:segments])], closed: true)
+                Picker::Preview.shape(view, [spec[0], *arc_points(spec, a[:segments])], closed: true)
               }) do |a|
             spec = arc_by_center(a) or next({ ok: false, message: 'the pie needs a radius and an angle' })
 
@@ -122,7 +122,7 @@ module BACommunity
                { key: :sides, type: :integer, default: 6, min: 3, max: 999, prompt: false },
                { key: :mode, type: :option, values: %w[Inscribed Circumscribed], default: 'Inscribed', prompt: false },
                options.last],
-              preview: ->(a, view) { (pts = polygon(a)) && Picker::Preview.polyline(view, pts, closed: true) }) do |a|
+              preview: ->(a, view) { (pts = polygon(a)) && Picker::Preview.shape(view, pts, closed: true) }) do |a|
             pts = polygon(a) or next({ ok: false, message: 'the polygon needs a radius' })
 
             # Контур сразу по вершинам: add_ngon с поворотом после мог бы

@@ -61,7 +61,9 @@ Step <500 mm> ( Mode=Step  Count=10  Align=Yes ):
 ```
 
 Enter принимает значение по умолчанию. Клик по опции перебирает варианты или
-спрашивает значение. Последние значения запоминаются до закрытия SketchUp.
+спрашивает значение; `Count=3` в ответ меняет опцию, не уходя с вопроса.
+Будущая геометрия рисуется тонкой сплошной линией, как у родных инструментов,
+а переносимые объекты — пунктирным габаритом. Последние значения запоминаются до закрытия SketchUp.
 
 Число, набранное при активном инструменте плагина, уходит этому инструменту,
 как ввод в поле Measurements.
@@ -148,7 +150,7 @@ BACommunity::Terminal.register(id: 'RalFan', plugin: 'RALNCS',
 
 ```bash
 python test/bridge.py test/live_session.rb   # исполнитель, параметры, мост: 48 проверок
-python test/bridge.py test/live_modify.rb    # Move…PushPull, точки, пикер: 55 проверок
+python test/bridge.py test/live_modify.rb    # Move…PushPull, точки, пикер: 57 проверок
 python test/bridge.py test/live_draw.rb      # рисование: 47 проверок
 python test/live_async.py                    # цепочки с send_action, окна: 10 проверок
 python test/live_builtins.py                 # стандартные команды: 72 проверки, ~10 минут
