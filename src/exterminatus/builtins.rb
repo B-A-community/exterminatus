@@ -34,12 +34,8 @@ module BACommunity
         ['Erase',            %w[E],        'Erase, hide, soften or smooth edges',          'selectEraseTool:'],
         ['Paint',            %w[B],        'Paint bucket',                                 'selectPaintTool:'],
         ['TagTool',          %w[],         'Apply tags to entities by clicking',           'selectTagTool:'],
-        ['Move',             %w[M],        'Move, copy or stretch',                        'selectMoveTool:'],
-        ['Rotate',           %w[Q],        'Rotate or copy around a center',               'selectRotateTool:'],
-        ['Scale',            %w[S],        'Resize or stretch',                            'selectScaleTool:'],
         ['Flip',             %w[],         'Flip or mirror selected entities',             'selectFlipTool:'],
         ['FollowMe',         %w[],         'Extrude a face along a path',                  'selectExtrudeTool:'],
-        ['Offset',           %w[F],        'Offset edges of a face',                       'selectOffsetTool:'],
         # Камера
         ['Orbit',            %w[O],        'Orbit the camera',                             'selectOrbitTool:'],
         ['Pan',              %w[H],        'Pan the camera',                               'selectDollyTool:'],
@@ -70,7 +66,7 @@ module BACommunity
         # Правка
         ['Undo',             %w[],         'Undo',                                         'editUndo:'],
         ['Redo',             %w[],         'Redo',                                         'editRedo:'],
-        ['Copy',             %w[],         'Copy selection',                               'copy:'],
+        ['CopyToClipboard',  %w[CopyClip], 'Copy selection to the clipboard',              'copy:'],
         ['Cut',              %w[],         'Cut selection',                                'cut:'],
         ['Paste',            %w[],         'Paste with the Move tool',                     'paste:'],
         # Сцены
@@ -92,13 +88,14 @@ module BACommunity
             add(id, aliases, description) { send_action(id, action) }
           end
           register_ruby
+          register_modify
         end
 
         private
 
-        def add(id, aliases, description, params = [], &run)
-          _cmd, err = Registry.add({ id: id, plugin: PLUGIN, description: description, aliases: aliases, params: params },
-                                   run, builtin: true)
+        def add(id, aliases, description, params = [], preview: nil, &run)
+          spec = { id: id, plugin: PLUGIN, description: description, aliases: aliases, params: params, preview: preview }
+          _cmd, err = Registry.add(spec, run, builtin: true)
           warn "Exterminatus: #{err}" if err
         end
 
@@ -152,19 +149,6 @@ module BACommunity
         # ---------- команды через Ruby API ----------
 
         def register_ruby
-          # С числом — как Rhino: выдавить выделенные грани сразу; без числа —
-          # обычный инструмент SketchUp.
-          add('PushPull', %w[P], 'Extrude faces; with a distance, extrude the selected faces',
-              [{ key: :distance, type: :length, optional: true }]) do |args|
-            next send_action('PushPull', 'selectPushPullTool:') if args[:distance].nil?
-
-            faces = selection.grep(Sketchup::Face)
-            next({ ok: false, message: 'select faces first' }) if faces.empty?
-
-            operation('Push/Pull') { faces.each { |f| f.pushpull(args[:distance]) if f.valid? } }
-            "#{faces.size} #{faces.size == 1 ? 'face' : 'faces'} pushed #{args[:distance].to_l}"
-          end
-
           add('ZoomSelected', %w[ZS], 'Zoom to the selection') do
             next({ ok: false, message: "select something first" }) if selection.empty?
 

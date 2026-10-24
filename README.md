@@ -23,10 +23,13 @@
 
 ```
 ze                         → ZoomExtents
-PushPull 20                выдавить выделенные грани на 20 (без числа — инструмент)
+Move                       спросит точки: клик в модели или 0,0,0 → @1000,0,0
+Move 0,0,500               сдвинуть выделение сразу
+Copy 1000,0,0 count=5      пять копий с шагом 1000
+Rotate 90 axis=x           повернуть вокруг центра выделения
+PushPull 1200/4            выдавить выделенные грани на 300
 Top; ZoomExtents           цепочка команд
 MakeComponent name=Door    аргумент по имени
-PathCopy 300               аргумент по порядку
 Commands architools        список команд плагина
 ```
 
@@ -57,26 +60,47 @@ Enter принимает значение по умолчанию. Клик по
 Число, набранное при активном инструменте плагина, уходит этому инструменту,
 как ввод в поле Measurements.
 
+### Точки и клики
+
+Если команда спрашивает точку, отвечать можно как удобно:
+
+| Ввод | Смысл |
+|---|---|
+| клик в модели | точка с привязками SketchUp (концы, середины, оси) |
+| `100,0,50` | координаты (дробь — через точку: `0,0,1.5`) |
+| `@1000,0,0` | смещение от предыдущей точки |
+| `1000<45`, `@1000<45` | расстояние под углом в плоскости XY |
+| `500` | 500 в сторону курсора от предыдущей точки |
+| `1200/4`, `1.2m-300` | арифметика работает в любом числе и длине |
+
+Набирать можно в терминале или прямо в окне модели — в поле Measurements.
+Enter, Esc и правая кнопка в окне модели работают так же, как в терминале.
+Если ничего не выделено, команда просит выделить: клик добавляет объект,
+Shift — переключает, рамка слева направо берёт целиком попавшее, справа
+налево — задетое; Enter или правая кнопка — готово.
+
 ## Стандартные команды SketchUp
 
-92 команды, полный список выводит `Commands sketchup`.
+94 команды, полный список выводит `Commands sketchup`.
 
 | Группа | Команды |
 |---|---|
 | Рисование | Line, Freehand, Rectangle, RotatedRectangle, Circle, Polygon, Arc, ArcCenter, Pie, Text, Text3D, Dimension, Tape, Protractor, Axes, SectionPlane |
-| Инструменты правки | Select, Lasso, Erase, Paint, TagTool, Move, Rotate, Scale, Flip, PushPull, FollowMe, Offset |
+| Правка в духе Rhino | Move, Copy, Rotate, Scale, PolarArray, Offset, PushPull |
+| Инструменты правки | Select, Lasso, Erase, Paint, TagTool, Flip, FollowMe |
 | Камера | Orbit, Pan, Zoom, ZoomWindow, ZoomExtents, ZoomSelected, PreviousView, PositionCamera, LookAround, Walk, Top, Bottom, Front, Back, Left, Right, Iso, Perspective, Parallel |
 | Стиль | Wireframe, HiddenLine, Shaded, ShadedTextures, Monochrome, ToggleXRay, ToggleBackEdges, ToggleAxes, ToggleGuides, ToggleHidden, ToggleHiddenObjects, ToggleSectionPlanes, ToggleSectionCuts, ToggleShadows, ToggleFog |
-| Правка | Undo, Redo, Copy, Cut, Paste, Delete, Hide, Unhide, UnhideAll, SelectAll, SelectNone, InvertSelection, Group, MakeComponent, Explode, MakeUnique, ReverseFaces, DeleteGuides, Purge |
+| Правка | Undo, Redo, CopyToClipboard, Cut, Paste, Delete, Hide, Unhide, UnhideAll, SelectAll, SelectNone, InvertSelection, Group, MakeComponent, Explode, MakeUnique, ReverseFaces, DeleteGuides, Purge |
 | Сцены | SceneAdd, SceneUpdate, SceneDelete, SceneNext, ScenePrevious |
 | Файл | New, Open, Save, Print, RubyConsole, ExtensionManager |
 | Терминал | Commands (Help), History, ClearLog (Cls), CommandBar |
 
 Где у SketchUp есть действие (`Sketchup.send_action`), команда вызывает его
-и ведёт себя так же, как кнопка. Число набрать в поле Measurements родного
-инструмента терминал не может: у Ruby API нет такого вызова. Поэтому команды
-с числом выполняются сами, как в Rhino: `PushPull 20`. Остальные команды повторяют пункт меню через
-Ruby API, каждая в один шаг отмены.
+и ведёт себя так же, как кнопка. Передать число родному инструменту терминал
+не может: у Ruby API нет такого вызова. Поэтому Move, Copy, Rotate, Scale,
+Offset и PushPull — свои команды в духе Rhino, каждая в один шаг отмены.
+Родные инструменты остаются на своих клавишах в окне модели (M, Q, S, F, P).
+Остальные команды повторяют пункт меню через Ruby API.
 
 ## Подключение плагинов
 
@@ -103,8 +127,9 @@ BACommunity::Terminal.register(id: 'RalFan', plugin: 'RALNCS',
 
 ```bash
 python test/bridge.py test/live_session.rb   # исполнитель, параметры, мост: 48 проверок
-python test/live_async.py                    # цепочки с send_action, окна: 7 проверок
-python test/live_builtins.py                 # стандартные команды: 84 проверки, ~10 минут
+python test/bridge.py test/live_modify.rb    # Move…PushPull, точки, пикер: 55 проверок
+python test/live_async.py                    # цепочки с send_action, окна: 10 проверок
+python test/live_builtins.py                 # стандартные команды: 79 проверок, ~10 минут
 ```
 
 `test/reload.rb` перечитывает исходники в работающий SketchUp без
@@ -122,6 +147,8 @@ src/exterminatus/
   params.rb                       типы параметров, разбор ввода
   session.rb                      исполнитель: строка, приглашения, история
   builtins.rb                     стандартные команды SketchUp
+  modify.rb                       Move, Copy, Rotate, Scale, PolarArray, Offset, PushPull
+  picker.rb                       ввод кликом: точки, выделение, предпросмотр
   window.rb                       окна: полоса и строка у курсора
   html/                           index.html, terminal.css, terminal.js
 design/                           макет и концепция дизайна (Codex)

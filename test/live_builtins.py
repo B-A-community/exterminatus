@@ -46,9 +46,8 @@ TOOLS = {
     'Arc': None, 'ArcCenter': None, 'Pie': None, 'Text': 'TextTool',
     'Dimension': 'DimensionTool', 'Tape': 'MeasureTool', 'Protractor': 'ProtractorTool',
     'Axes': 'SketchCSTool', 'SectionPlane': 'SectionPlaneTool',
-    'Lasso': None, 'Erase': 'EraseTool', 'Paint': 'PaintTool', 'TagTool': None, 'Move': 'MoveTool',
-    'Rotate': 'RotateTool', 'Scale': 'ScaleTool', 'Flip': None, 'PushPull': 'PushPullTool',
-    'FollowMe': 'ExtrudeTool', 'Offset': 'OffsetTool', 'Orbit': 'CameraOrbitTool', 'Pan': 'CameraDollyTool',
+    'Lasso': None, 'Erase': 'EraseTool', 'Paint': 'PaintTool', 'TagTool': None,
+    'Flip': None, 'FollowMe': 'ExtrudeTool', 'Orbit': 'CameraOrbitTool', 'Pan': 'CameraDollyTool',
     'Zoom': 'CameraZoomTool', 'ZoomWindow': 'CameraZoomWindowTool', 'PositionCamera': 'PositionCameraTool',
     'LookAround': 'CameraPanTool', 'Walk': 'CameraWalkTool',
 }
@@ -198,7 +197,7 @@ errs = term('SceneUpdate')
 ok('SceneUpdate', not errs, errs)
 errs = term('SceneDelete')
 ok('SceneDelete', not errs and rb("Sketchup.active_model.pages.size.to_json") == pages, errs)
-for cmd in ['ZoomExtents', 'PreviousView', 'SceneNext', 'ScenePrevious', 'Copy', 'Cut', 'Unhide']:
+for cmd in ['ZoomExtents', 'PreviousView', 'SceneNext', 'ScenePrevious', 'CopyToClipboard', 'Cut', 'Unhide']:
     errs = term(cmd)
     ok(cmd + ' runs', not errs, errs)
 rb("Sketchup.active_model.select_tool(nil); nil.to_json")

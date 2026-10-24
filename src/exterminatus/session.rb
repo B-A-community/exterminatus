@@ -93,6 +93,7 @@ module BACommunity
             emit(:info, "#{@run.cmd.id} cancelled")
             @run = nil
             @queue.clear
+            Picker.stop
           elsif @external
             ext = @external
             @external = nil
@@ -148,6 +149,45 @@ module BACommunity
           @last_values.delete(id.to_s)
         end
 
+        # Клик в модели ответил на текущий вопрос.
+        def picked(param, value)
+          return unless @run && current_param.equal?(param)
+
+          @run.args[param.key] = value
+          echo_answer(param, param.format(value))
+          accept
+        end
+
+        # Значения команды с подставленными Auto (центр по выделению и т. п.).
+        def resolved(run, args = run.args)
+          args = args.dup
+          run.cmd.params.each do |p|
+            args[p.key] = p.auto_value(args) if args[p.key].nil? && p.auto?
+          end
+          args
+        end
+
+        # Предпросмотр команды, пока курсор отвечает на вопрос param.
+        def preview(run, param, value, view)
+          return unless run.cmd.preview && @run.equal?(run)
+
+          run.cmd.preview.call(resolved(run, run.args.merge(param.key => value)), view)
+        rescue StandardError => e
+          warn "Exterminatus: #{run.cmd.id} preview raised #{e.class}: #{e.message}"
+        end
+
+        # Приглашение одной строкой — для строки состояния SketchUp.
+        def prompt_line
+          st = prompt_state or return nil
+          line = +"#{st[:command]}: #{st[:text]}"
+          line << " <#{st[:default]}>" if st[:default]
+          if st[:options].any?
+            opts = st[:options].map { |o| o[:value].to_s.empty? ? o[:name] : "#{o[:name]}=#{o[:value]}" }
+            line << " ( #{opts.join('  ')} )"
+          end
+          line
+        end
+
         def busy?
           !@run.nil? || !@external.nil?
         end
@@ -201,8 +241,8 @@ module BACommunity
             param = current_param
             {
               command: @run.cmd.id,
-              text: param ? param.name : 'Press Enter to run',
-              default: param ? param.format(@run.args[param.key]).then { |s| s.empty? ? nil : s } : nil,
+              text: param ? param_prompt(param) : 'Press Enter to run',
+              default: param && !param.selection? ? param.format(@run.args[param.key]).then { |s| s.empty? ? nil : s } : nil,
               options: option_params.reject { |p| p == param }.map { |p| { name: p.name, value: p.format(@run.args[p.key]) } },
               values: param&.type == :option ? param.values : (param&.type == :bool ? %w[Yes No] : [])
             }
@@ -248,20 +288,27 @@ module BACommunity
           return fail_chain(err) if err
 
           defaults = cmd.params.reject { |p| args.key?(p.key) }
-          defaults.each { |p| args[p.key] = last_value(cmd, p) }
-          ask = if tokens.empty?
-                  cmd.params.select { |p| !p.optional? && (p.prompt? || args[p.key].nil?) }
-                else
-                  defaults.select { |p| !p.optional? && args[p.key].nil? }
-                end
-          confirm = tokens.empty? && ask.empty? && cmd.params.any? { |p| !p.optional? }
+          defaults.each { |p| args[p.key] = p.selection? ? p.selected : last_value(cmd, p) }
+          # Без аргументов спрашиваем всё, что prompt: true; с аргументами —
+          # только то, без чего нельзя. Выделение — только если оно пустое.
+          ask = cmd.params.select do |p|
+            missing = args[p.key].nil? && !p.auto?
+            next false if p.optional?
+            next missing if p.selection?
+
+            tokens.empty? ? p.prompt? || missing : defaults.include?(p) && missing
+          end
+          confirm = tokens.empty? && ask.none? { |p| !p.selection? } &&
+                    cmd.params.any? { |p| !p.optional? && !p.selection? && p.wanted?(args) }
           @run = Run.new(cmd, args, ask, nil, confirm)
           advance
         end
 
         def advance
+          @run.ask.shift while @run.ask.any? && !@run.ask.first.wanted?(@run.args)
           if @run.sub || @run.ask.any? || @run.confirm
             Window.sync
+            Picker.follow(current_param, @run)
           else
             execute
           end
@@ -273,7 +320,8 @@ module BACommunity
 
           if text.empty?
             return execute_confirmed if param.nil?
-            return emit(:error, "#{param.name}: value required") if @run.args[param.key].nil?
+            return take_selection(param) if param.selection?
+            return emit(:error, "#{param.name}: value required") if @run.args[param.key].nil? && !param.auto?
 
             echo_answer(param, param.format(@run.args[param.key]))
             return accept
@@ -283,7 +331,7 @@ module BACommunity
           return choose_option(opt) if opt
           return emit(:error, 'Press Enter to run, Esc to cancel, or click an option') if param.nil?
 
-          value, err = param.parse(text)
+          value, err = param.parse(text, base: point_base(param), cursor: Picker.cursor)
           return emit(:error, err) if err
 
           @run.args[param.key] = value
@@ -312,13 +360,15 @@ module BACommunity
             @run.sub = param
           end
           Window.sync
+          Picker.follow(current_param, @run)
         end
 
         def execute
           run = @run
           @run = nil
-          run.cmd.params.each { |p| @last_values[run.cmd.id][p.key] = run.args[p.key] unless p.optional? }
-          res = invoke(run.cmd, run.args)
+          Picker.stop
+          run.cmd.params.each { |p| @last_values[run.cmd.id][p.key] = run.args[p.key] if p.remember? }
+          res = invoke(run.cmd, resolved(run))
           report(run.cmd, res)
           # send_action SketchUp выполняет позже, в своём цикле сообщений:
           # остаток цепочки ждёт, иначе «Hide; SelectNone» снимет выделение
@@ -350,7 +400,7 @@ module BACommunity
           { ok: false, message: e.message }
         ensure
           @executing = false
-      @paused = false
+          @paused = false
         end
 
         # Результат команды: строка — сообщение; Hash {ok:, message:} — как в
@@ -438,48 +488,70 @@ module BACommunity
         end
 
         def option_params
-          @run.cmd.params.reject { |p| p.prompt? || p.optional? }
+          @run.cmd.params.reject { |p| p.prompt? || p.optional? || !p.wanted?(@run.args) }
         end
 
         def last_value(cmd, param)
           values = @last_values[cmd.id]
-          values.key?(param.key) && !param.optional? ? values[param.key] : param.coerce_default
+          values.key?(param.key) && param.remember? ? values[param.key] : param.coerce_default
+        end
+
+        def param_prompt(param)
+          param.selection? ? "#{param.label}. Press Enter when done" : param.label
+        end
+
+        # Пустой Enter на «Select objects»: взять выделение из модели.
+        def take_selection(param)
+          items = param.selected
+          return emit(:error, 'Nothing selected') unless items
+
+          @run.args[param.key] = items
+          echo_answer(param, param.format(items))
+          accept
+        end
+
+        # Точка, от которой считаются «@…» и число в сторону курсора.
+        def point_base(param)
+          param.base ? resolved(@run)[param.base] : nil
         end
 
         def echo_answer(param, text)
-          emit(:echo, "#{param.name}: #{text}")
+          emit(:echo, "#{param.label}: #{text}")
         end
 
         # Позиционные значения идут по порядку параметров, именованные —
         # Name=value в любом месте.
+        # Сначала раскладываем текст по параметрам, потом разбираем в порядке
+        # params: «to=@100,0,0 from=0,0,0» знает from, когда считает to.
         def bind(cmd, tokens)
-          args = {}
+          raw = {}
           positional = []
           tokens.each do |tok|
             if (m = tok.match(/\A([A-Za-z][A-Za-z0-9]*)=(.*)\z/m))
               param = cmd.params.find { |p| p.name.casecmp?(m[1]) }
               return [nil, "#{cmd.id}: unknown parameter #{m[1]}"] unless param
 
-              value, err = param.parse(m[2])
-              return [nil, err] if err
-
-              args[param.key] = value
+              raw[param] = m[2]
             else
               positional << tok
             end
           end
-          free = cmd.params.reject { |p| args.key?(p.key) }
+          free = cmd.params.reject { |p| raw.key?(p) || p.selection? }
           if positional.size > free.size
             return [nil, "#{cmd.id}: takes no arguments"] if cmd.params.empty?
 
             return [nil, "#{cmd.id}: too many arguments (parameters: #{cmd.params.map(&:name).join(', ')})"]
           end
 
-          positional.each_with_index do |tok, i|
-            value, err = free[i].parse(tok)
+          positional.each_with_index { |tok, i| raw[free[i]] = tok }
+          args = {}
+          cmd.params.each do |param|
+            next unless raw.key?(param)
+
+            value, err = param.parse(raw[param], base: args[param.base])
             return [nil, err] if err
 
-            args[free[i].key] = value
+            args[param.key] = value
           end
           [args, nil]
         end

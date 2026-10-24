@@ -3,8 +3,10 @@
 module BACommunity
   module Terminal
     # Команда терминала. run получает (args) или (args, ctx); args — Hash с
-    # ключами параметров (Symbol).
-    Command = Struct.new(:id, :plugin, :description, :aliases, :params, :run, :builtin, keyword_init: true) do
+    # ключами параметров (Symbol). preview(args, view) рисует результат, пока
+    # пользователь выбирает точку в модели.
+    Command = Struct.new(:id, :plugin, :description, :aliases, :params, :run, :preview, :builtin,
+                         keyword_init: true) do
       def names
         [id, *aliases]
       end
@@ -36,6 +38,7 @@ module BACommunity
           id = spec[:id].to_s
           return [nil, "command id must be English CamelCase (e.g. PathCopy): #{id.inspect}"] unless id.match?(ID_PATTERN)
           return [nil, "#{id}: no block given"] unless run.respond_to?(:call)
+          return [nil, "#{id}: preview must respond to call"] if spec[:preview] && !spec[:preview].respond_to?(:call)
 
           aliases = Array(spec[:aliases]).map(&:to_s)
           bad = aliases.reject { |a| a.match?(NAME_PATTERN) }
@@ -51,7 +54,7 @@ module BACommunity
           return [nil, "#{id}: duplicate parameter names #{dup.inspect}"] if dup.any?
 
           cmd = Command.new(id: id, plugin: (spec[:plugin] || 'Unknown').to_s, description: spec[:description].to_s,
-                            aliases: aliases, params: params, run: run, builtin: builtin)
+                            aliases: aliases, params: params, run: run, preview: spec[:preview], builtin: builtin)
           @commands[id.downcase] = cmd
           cmd.names.each { |n| @names[n.downcase] = cmd }
           @revision += 1

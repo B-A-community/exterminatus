@@ -92,6 +92,13 @@ module BACommunity
           d.close if d&.visible?
         end
 
+        # Ввод из окна модели (клик, Enter, поле Measurements) закончил
+        # команду — popup уходит, как после Enter в нём самом.
+        def settle
+          sync
+          close(:popup) if visible?(:popup) && !Session.needs_typing? && !Session.last_failed?
+        end
+
         private
 
         def create(mode)

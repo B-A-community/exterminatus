@@ -46,7 +46,7 @@ else:
 rb("m=Sketchup.active_model; m.close_active while m.active_path; "
    "g=m.entities.grep(Sketchup::Group).find{|x| x.name=='EXT_SANDBOX'}; g.erase! if g; nil.to_json")
 
-# PushPull 20 выдавливает выделенную грань, PushPull без числа включает инструмент.
+# PushPull 20 выдавливает выделенную грань; без выделения просит выделить грани.
 rb("""m=Sketchup.active_model; m.select_tool(nil); m.close_active while m.active_path
 g=m.entities.add_group; g.name='EXT_SANDBOX'
 f=g.entities.add_face([0,0,0],[1000.mm,0,0],[1000.mm,1000.mm,0],[0,1000.mm,0])
@@ -59,14 +59,11 @@ if rb("p=Sketchup.active_model.active_path; (!p.nil? && p.first.name=='EXT_SANDB
     undone = rb("S=BACommunity::Terminal::Session; S.busy?.to_json")
     ok('PushPull 20 asks nothing', undone is False)
     rb("Sketchup.active_model.selection.clear; nil.to_json")
-    errs = rb("S=BACommunity::Terminal::Session; f=S.seq; S.submit('PushPull 20'); "
-              "S.log_after(f).select{|l| l[:kind]=='error'}.map{|l| l[:text]}.to_json")
-    ok('PushPull 20 without faces -> error', errs == ['PushPull: select faces first'], errs)
-    rb("BACommunity::Terminal::Session.submit('PushPull'); nil.to_json")
-    time.sleep(1)
-    tool = rb("Sketchup.active_model.tools.active_tool_name.to_json")
-    ok('PushPull alone starts the tool', tool == 'PushPullTool', tool)
-    rb("Sketchup.active_model.select_tool(nil); nil.to_json")
+    st = rb("S=BACommunity::Terminal::Session; S.submit('PushPull 20'); "
+            "[S.prompt_state && S.prompt_state[:text], Sketchup.active_model.tools.active_tool.class.name].to_json")
+    ok('PushPull 20 without faces asks to select', st == ['Select faces to push or pull. Press Enter when done',
+                                                         'BACommunity::Terminal::Picker::SelectTool'], st)
+    rb("BACommunity::Terminal::Session.cancel; Sketchup.active_model.select_tool(nil); nil.to_json")
 else:
     ok('sandbox guard', False)
 rb("m=Sketchup.active_model; m.close_active while m.active_path; "
