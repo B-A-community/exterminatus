@@ -42,8 +42,7 @@ def ok(name, cond, note=''):
 
 TOOLS = {
     'Freehand': 'FreehandTool',
-    'RotatedRectangle': None, 'Polygon': 'PolyTool',
-    'Arc': None, 'ArcCenter': None, 'Pie': None, 'Text': 'TextTool',
+    'RotatedRectangle': None, 'Text': 'TextTool',
     'Dimension': 'DimensionTool', 'Tape': 'MeasureTool', 'Protractor': 'ProtractorTool',
     'Axes': 'SketchCSTool', 'SectionPlane': 'SectionPlaneTool',
     'Lasso': None, 'Erase': 'EraseTool', 'Paint': 'PaintTool', 'TagTool': None,

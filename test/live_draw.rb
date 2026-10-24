@@ -8,7 +8,7 @@ results = []
 ok = ->(name, cond, note = '') { results << [cond ? 'PASS' : 'FAIL', name, note.to_s] }
 mm = ->(v) { (v.to_f * 25.4).round(3) }
 saved_history = S.history.dup
-%w[Line Rectangle Circle].each { |id| S.forget(id) }
+%w[Line Rectangle Circle Arc ArcCenter Pie Polygon].each { |id| S.forget(id) }
 
 m.select_tool(nil)
 m.close_active while m.active_path
@@ -177,6 +177,98 @@ rs = S.instance_variable_get(:@run)
 S.preview(rs, rs.cmd.param(:radius), 100.mm, fv)
 S.cancel
 ok.('previews draw', fv.calls == 2, fv.calls)
+
+# ---------- Arc: концы и прогиб ----------
+arc = -> { ents.grep(Sketchup::Edge).map(&:curve).compact.uniq.first }
+pts = -> { ents.grep(Sketchup::Edge).flat_map(&:vertices).uniq.map(&:position) }
+errs = run.("Arc #{x0},0,0 #{x0 + 1000},0,0 200")
+c = arc.call
+ok.('Arc by bulge: radius', errs.empty? && c.is_a?(Sketchup::ArcCurve) && mm.(c.radius) == 725.0, [errs, c && mm.(c.radius)])
+ok.('Arc bulges to +Y', mm.(pts.call.map(&:y).max).round == 200 && mm.(pts.call.map(&:y).min).round == 0, pts.call.map { |q| mm.(q.y) }.minmax)
+clear.call
+run.("Arc #{x0},0,0 #{x0 + 1000},0,0 -200")
+ok.('negative bulge goes to -Y', mm.(pts.call.map(&:y).min).round == -200, pts.call.map { |q| mm.(q.y) }.minmax)
+clear.call
+run.("Arc #{x0},0,0 #{x0 + 1000},0,0 800")
+ok.('bulge over half chord: arc > 180', mm.(pts.call.map(&:y).max).round == 800, pts.call.map { |q| mm.(q.y) }.minmax)
+clear.call
+S.submit('Arc')
+S.submit("#{x0},0,0")
+S.submit("#{x0 + 1000},0,0")
+ok.('Arc asks bulge', prompt.call == 'Bulge', prompt.call)
+rs = S.instance_variable_get(:@run)
+b = T::Builtins.send(:bulge_at, Geom::Point3d.new((x0 + 300).mm, 150.mm, 40.mm), S.resolved(rs))
+ok.('bulge from cursor', mm.(b) == 150.0, mm.(b))
+S.submit('150')
+ok.('typed bulge draws', arc.call && !S.busy?)
+clear.call
+
+# ---------- ArcCenter, Pie ----------
+errs = run.("ArcCenter #{x0},0,0 #{x0 + 1000},0,0 90")
+c = arc.call
+ends = c && [c.first_edge.start.position, c.last_edge.end.position].map { |q| q.to_a.map { |v| mm.(v).round } }
+ok.('ArcCenter 90', errs.empty? && c && mm.(c.radius) == 1000.0 && ends.include?([x0, 1000, 0]), [errs, ends])
+clear.call
+run.("ArcCenter #{x0},0,0 #{x0 + 1000},0,0 -90")
+ok.('ArcCenter -90 goes clockwise', mm.(pts.call.map(&:y).min).round == -1000 && mm.(pts.call.map(&:y).max).round == 0)
+clear.call
+errs = run.("ArcCenter #{x0},0,0 #{x0 + 1000},0,0 #{x0},-1000,0")
+ok.('end point instead of angle: 270', errs.empty? && mm.(pts.call.map(&:x).min).round == x0 - 1000, [errs, pts.call.map { |q| mm.(q.x) }.minmax])
+clear.call
+S.submit('ArcCenter')
+S.submit("#{x0},0,0")
+S.submit("#{x0 + 1000},0,0")
+rs = S.instance_variable_get(:@run)
+ang = T::Builtins.send(:sweep_at, Geom::Point3d.new(x0.mm, 700.mm, 0), S.resolved(rs))
+ok.('angle from cursor', ang == 90.0, ang)
+S.cancel
+errs = run.("Pie #{x0},0,0 #{x0 + 1000},0,0 90")
+f = ents.grep(Sketchup::Face).first
+area = f && (f.area * 25.4 * 25.4 / 1e6).round(2) # м²
+ok.('Pie makes a quarter face', errs.empty? && f && (area - Math::PI / 4).abs < 0.01, [errs, area])
+clear.call
+
+# ---------- Polygon ----------
+errs = run.("Polygon #{x0},0,0 500")
+f = ents.grep(Sketchup::Face).first
+corner = f && f.vertices.map { |v| v.position.to_a.map { |q| mm.(q).round } }.include?([x0 + 500, 0, 0])
+ok.('Polygon by radius', errs.empty? && f && f.edges.size == 6 && corner, [errs, f&.edges&.size, corner])
+clear.call
+errs = run.("Polygon #{x0},0,0 #{x0 + 500},0,0 sides=4 mode=circumscribed")
+f = ents.grep(Sketchup::Face).first
+ok.('Polygon circumscribed square', errs.empty? && f && f.edges.size == 4 && dims.(f).map(&:round) == [1000, 1000, 0], [errs, f && dims.(f)])
+clear.call
+S.forget('Polygon')
+errs = run.("Polygon #{x0},0,0 #{x0},500,0")
+f = ents.grep(Sketchup::Face).first
+corner = f && f.vertices.map { |v| v.position.to_a.map { |q| mm.(q).round } }.include?([x0, 500, 0])
+ok.('Polygon corner follows the point', errs.empty? && corner, errs)
+clear.call
+
+# Замечания Codex: точный конец без прилипания, концы Pie, радиус при курсоре вне плоскости.
+errs = run.("ArcCenter #{x0},0,0 #{x0 + 1000},0,0 #{x0 + 1000},10,0 plane=xy")
+ok.('typed end point is not snapped', errs.empty? && arc.call, errs)
+clear.call
+ents.add_line([(x0).mm, 100.mm, 0], [(x0 + 100).mm, 0, 0])
+errs = run.("Pie #{x0},0,0 #{x0 + 100},0,0 180 segments=2 plane=xy")
+ok.('Pie closes over an existing edge', errs.empty? && ents.grep(Sketchup::Face).any?, errs)
+clear.call
+errs = run.("Pie #{x0},0,0 #{x0 + 1000},0,0 360 segments=2")
+ok.('full Pie from two segments -> error', errs.first.to_s.include?('Pie'), errs)
+S.forget('Pie')
+errs = run.("Pie #{x0},0,0 #{x0 + 1000},0,0 360 segments=12")
+ok.('full Pie is a disc', errs.empty? && ents.grep(Sketchup::Face).size == 1, [errs, ents.grep(Sketchup::Face).size])
+clear.call
+S.forget('Polygon')
+pp = T::Builtins.send(:corner_by_radius, '1000', { center: Geom::Point3d.new(x0.mm, 0, 0), plane: 'XY' },
+                      Geom::Point3d.new((x0 + 1000).mm, 0, 1000.mm))
+ok.('typed radius toward an off-plane cursor', pp && mm.(pp.x) == x0 + 1000.0 && mm.(pp.z) == 0.0, pp)
+f0 = ents.add_face(ents.add_ngon(Geom::Point3d.new(x0.mm, 0, 0), Z_AXIS, 500.mm, 4))
+before = f0.vertices.map { |v| v.position.to_a.map { |q| mm.(q).round } }.sort
+run.("Polygon #{x0},0,0 #{x0 + 354},354,0 sides=4")
+now = ents.grep(Sketchup::Edge).flat_map(&:vertices).uniq.map { |v| v.position.to_a.map { |q| mm.(q).round } }
+ok.('Polygon does not rotate existing edges', (before - now).empty?, before - now)
+clear.call
 
 # ---------- уборка ----------
 m.selection.clear

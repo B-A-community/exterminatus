@@ -119,9 +119,11 @@ module BACommunity
         s = text.to_s.strip
         return [nil, nil] if auto? && s.casecmp?(AUTO)
 
-        # Свой разбор (parse: ->(text, args) { value или nil }); nil — обычный.
+        # Свой разбор (parse: ->(text, args) { value или nil }, третьим
+        # аргументом можно взять точку под курсором); nil — обычный разбор.
         if @custom && !s.empty?
-          value = @custom.call(s, ctx[:args] || {})
+          extra = @custom.arity.abs >= 3 ? [ctx[:cursor]] : []
+          value = @custom.call(s, ctx[:args] || {}, *extra)
           return [value, nil] unless value.nil?
         end
         return [nil, "#{name}: select objects in the model, then press Enter"] if selection?

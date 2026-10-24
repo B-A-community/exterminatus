@@ -26,6 +26,9 @@ ze                         → ZoomExtents
 Line                       точки кликом или вводом, идёт дальше до Enter
 Rectangle 0,0,0 3000,2000  прямоугольник по углу и размеру
 Circle 0,0,0 500           окружность по центру и радиусу
+Arc 0,0,0 1000,0,0 200     дуга по концам и прогибу
+ArcCenter 0,0,0 1000,0,0 90  дуга по центру, началу и углу (или конечной точке)
+Polygon 0,0,0 500 sides=8  многоугольник по центру и радиусу (или вершине)
 Move                       спросит точки: клик в модели или 0,0,0 → @1000,0,0
 Move 0,0,500               сдвинуть выделение сразу
 Copy 1000,0,0 count=5      пять копий с шагом 1000
@@ -86,7 +89,14 @@ Line после каждого отрезка продолжает от посл
 Enter или Esc; замкнутый контур становится гранью. У Rectangle второй ответ —
 угол или размер `3000,2000` в плоскости прямоугольника. Rectangle и Circle
 ложатся на грань, по которой кликнули первой точкой (`Plane=Auto`), а без
-грани — на XY; опция `Plane` фиксирует XY, XZ или YZ.
+грани — на XY; опция `Plane` фиксирует XY, XZ или YZ. Так же ложатся дуги и
+многоугольник.
+
+Arc строится как у SketchUp: два конца, потом прогиб (клик или число; минус —
+в другую сторону). ArcCenter и Pie: центр, начало, потом угол — клик, число
+градусов (минус — по часовой) или конечная точка `x,y,z`. Polygon: центр, потом
+вершина кликом или радиус числом; `Sides` — число сторон, `Mode=Circumscribed`
+— радиус до середины стороны.
 
 ## Стандартные команды SketchUp
 
@@ -94,8 +104,8 @@ Enter или Esc; замкнутый контур становится гран�
 
 | Группа | Команды |
 |---|---|
-| Рисование | Freehand, RotatedRectangle, Polygon, Arc, ArcCenter, Pie, Text, Text3D, Dimension, Tape, Protractor, Axes, SectionPlane |
-| Рисование в духе Rhino | Line, Rectangle, Circle |
+| Рисование | Freehand, RotatedRectangle, Arc, ArcCenter, Pie, Text, Text3D, Dimension, Tape, Protractor, Axes, SectionPlane |
+| Рисование в духе Rhino | Line, Rectangle, Circle, Arc, ArcCenter, Pie, Polygon |
 | Правка в духе Rhino | Move, Copy, Rotate, Scale, PolarArray, Offset, PushPull |
 | Инструменты правки | Select, Lasso, Erase, Paint, TagTool, Flip, FollowMe |
 | Камера | Orbit, Pan, Zoom, ZoomWindow, ZoomExtents, ZoomSelected, PreviousView, PositionCamera, LookAround, Walk, Top, Bottom, Front, Back, Left, Right, Iso, Perspective, Parallel |
@@ -108,9 +118,9 @@ Enter или Esc; замкнутый контур становится гран�
 Где у SketchUp есть действие (`Sketchup.send_action`), команда вызывает его
 и ведёт себя так же, как кнопка. Передать число родному инструменту терминал
 не может: у Ruby API нет такого вызова. Поэтому Line, Rectangle, Circle,
-Move, Copy, Rotate, Scale, Offset и PushPull — свои команды в духе Rhino,
-каждая в один шаг отмены. Родные инструменты остаются на своих клавишах в
-окне модели (L, R, C, M, Q, S, F, P).
+Arc, Polygon, Move, Copy, Rotate, Scale, Offset и PushPull — свои команды в
+духе Rhino, каждая в один шаг отмены. Родные инструменты остаются на своих
+клавишах в окне модели (L, R, C, A, M, Q, S, F, P).
 Остальные команды повторяют пункт меню через Ruby API.
 
 ## Подключение плагинов
@@ -139,9 +149,9 @@ BACommunity::Terminal.register(id: 'RalFan', plugin: 'RALNCS',
 ```bash
 python test/bridge.py test/live_session.rb   # исполнитель, параметры, мост: 48 проверок
 python test/bridge.py test/live_modify.rb    # Move…PushPull, точки, пикер: 55 проверок
-python test/bridge.py test/live_draw.rb      # Line, Rectangle, Circle: 26 проверок
+python test/bridge.py test/live_draw.rb      # рисование: 47 проверок
 python test/live_async.py                    # цепочки с send_action, окна: 10 проверок
-python test/live_builtins.py                 # стандартные команды: 76 проверок, ~10 минут
+python test/live_builtins.py                 # стандартные команды: 72 проверки, ~10 минут
 ```
 
 `test/reload.rb` перечитывает исходники в работающий SketchUp без
@@ -160,7 +170,7 @@ src/exterminatus/
   session.rb                      исполнитель: строка, приглашения, история
   builtins.rb                     стандартные команды SketchUp
   modify.rb                       Move, Copy, Rotate, Scale, PolarArray, Offset, PushPull
-  draw.rb                         Line, Rectangle, Circle
+  draw.rb                         Line, Rectangle, Circle, Arc, ArcCenter, Pie, Polygon
   picker.rb                       ввод кликом: точки, выделение, предпросмотр
   window.rb                       окна: полоса и строка у курсора
   html/                           index.html, terminal.css, terminal.js

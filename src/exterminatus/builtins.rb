@@ -14,10 +14,6 @@ module BACommunity
         # Рисование
         ['Freehand',         %w[],         'Draw freehand curves',                         'selectFreehandTool:'],
         ['RotatedRectangle', %w[Rect3],    'Draw a rectangle at any angle by 3 points',    'selectRectangle3PointTool:'],
-        ['Polygon',          %w[Poly],     'Draw regular polygons',                        'selectPolygonTool:'],
-        ['Arc',              %w[A],        'Draw an arc by endpoints and bulge',           'selectArcTool:'],
-        ['ArcCenter',        %w[],         'Draw an arc by center, radius and end point',  'selectArc3PointTool:'],
-        ['Pie',              %w[],         'Draw a pie-shaped face',                       'selectArc3PointPieTool:'],
         ['Text',             %w[],         'Insert text with a leader',                    'selectTextTool:'],
         ['Text3D',           %w[],         'Insert 3D text',                               'select3dTextTool:'],
         ['Dimension',        %w[Dim],      'Create linear dimensions',                     'selectDimensionTool:'],
@@ -87,6 +83,7 @@ module BACommunity
           register_ruby
           register_modify
           register_draw
+          register_curves
         end
 
         private
