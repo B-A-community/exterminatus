@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "generated": "2026-10-25T20:21:41Z",
+  "generated": "2026-10-25T20:26:09Z",
   "plugins": [
     {
       "id": "ralncs",
@@ -172,6 +172,20 @@
       "folder": "exterminatus",
       "description": "Command line, plugin updates",
       "releases": [
+        {
+          "version": "0.4.1",
+          "tag": "v0.4.1",
+          "date": "2026-10-25",
+          "notes": "## Exterminatus 0.4.1\n\n- В окне Plugin Updates ссылка на страницу плагина называется «Plugin page», ссылка на каталог сайта — «All plugins».\n- Из окна убрана кнопка «Roll back to …». Откат остался командой терминала `PluginRollback`.\n\nВсе изменения — [CHANGELOG.md](https://github.com/B-A-community/exterminatus/blob/main/CHANGELOG.md).\n\n**Установка:** обновиться из окна Extensions → Exterminatus → Plugin Updates или Window → Extension Manager → Install Extension → `exterminatus-0.4.1.rbz`.",
+          "assets": {
+            "any": {
+              "name": "exterminatus-0.4.1.rbz",
+              "url": "https://github.com/B-A-community/exterminatus/releases/download/v0.4.1/exterminatus-0.4.1.rbz",
+              "size": 103026,
+              "sha256": "89b22472345d006f6193c301fffe4489eb4b85a408c0761cf9021e4e419b6578"
+            }
+          }
+        },
         {
           "version": "0.4.0",
           "tag": "v0.4.0",
