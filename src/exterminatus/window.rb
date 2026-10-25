@@ -23,10 +23,23 @@ module BACommunity
           if visible?(:bar)
             focus(:bar)
           elsif visible?(:popup)
-            close(:popup)
+            pinned? ? focus(:popup) : close(:popup)
           else
             open_popup
           end
+        end
+
+        # Закреплённая строка (булавка): не закрывается после команды и по
+        # Esc, не прыгает к курсору — стоит, куда её перетащили (место
+        # SketchUp помнит сам). Окно принадлежит главному окну SketchUp,
+        # поэтому сворачивается и возвращается вместе с ним на то же место.
+        def pinned?
+          Sketchup.read_default(PREFS_KEY, 'popup_pinned', false) == true
+        end
+
+        def toggle_pin
+          Sketchup.write_default(PREFS_KEY, 'popup_pinned', !pinned?)
+          sync
         end
 
         # Команду запустили из меню или кнопкой: если она ждёт ответа с
@@ -53,8 +66,10 @@ module BACommunity
 
         def open_popup
           dialog = (@dialogs[:popup] ||= create(:popup))
-          x, y = cursor_position
-          dialog.set_position(x - 24, y - 16) if x
+          unless pinned?
+            x, y = cursor_position
+            dialog.set_position(x - 24, y - 16) if x
+          end
           dialog.show
         end
 
@@ -70,7 +85,7 @@ module BACommunity
             next unless dialog.visible? && @state[mode]
 
             st = @state[mode]
-            data = { prompt: Session.prompt_state, idle: true }
+            data = { prompt: Session.prompt_state, idle: true, pinned: pinned? }
             lines = Session.log_after(st[:seq])
             data[:log] = lines unless lines.empty?
             st[:seq] = Session.seq
@@ -104,6 +119,8 @@ module BACommunity
         # команду — popup уходит, как после Enter в нём самом.
         def settle
           sync
+          return if pinned?
+
           close(:popup) if visible?(:popup) && !Session.needs_typing? && !Session.last_failed?
         end
 
@@ -129,6 +146,7 @@ module BACommunity
           dialog.add_action_callback('cancel') { |_ctx| guarded { Session.cancel } }
           dialog.add_action_callback('dismiss') { |_ctx| dismiss(mode) }
           dialog.add_action_callback('height') { |_ctx, h| resize_popup(h.to_i) if mode == :popup }
+          dialog.add_action_callback('pin') { |_ctx| toggle_pin }
           # Закрытое окно SketchUp не открывает заново с теми же колбэками —
           # следующий раз создаём новое.
           dialog.set_on_closed do
@@ -146,7 +164,8 @@ module BACommunity
             commands: Registry.catalog,
             history: Session.history,
             log: Session.tail(mode == :bar ? BAR_LOG_LINES : 0),
-            prompt: Session.prompt_state
+            prompt: Session.prompt_state,
+            pinned: pinned?
           }
           dialog.execute_script("T.init(#{JSON.generate(data)})")
         end
@@ -155,7 +174,10 @@ module BACommunity
           guarded { Session.submit(line) }
           # Popup уходит, когда команде больше нечего спрашивать и она не
           # упала, — ошибка остаётся видна до Esc.
-          if mode == :popup
+          if mode == :popup && pinned?
+            # Закреплённая остаётся; модели — фокус, только если команда ждёт клик.
+            Sketchup.focus if Session.busy? && !Session.needs_typing?
+          elsif mode == :popup
             if !Session.needs_typing? && !Session.last_failed?
               close(:popup)
               Sketchup.focus
@@ -166,7 +188,7 @@ module BACommunity
         end
 
         def dismiss(mode)
-          close(:popup) if mode == :popup
+          close(:popup) if mode == :popup && !pinned?
           Sketchup.focus
         end
 

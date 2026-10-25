@@ -279,6 +279,51 @@ body:is(.mode-bar, .mode-popup) {
   display: none;
 }
 
+/* Булавка — только у строки у курсора: закреплённая не закрывается. */
+.pin {
+  display: none;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--input-height);
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-left: var(--stroke) solid var(--divider);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.mode-popup .pin {
+  display: flex;
+}
+
+.pin svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+.pin:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.pin[aria-pressed="true"] {
+  color: var(--selection);
+}
+
+.pin[aria-pressed="true"] svg {
+  fill: currentColor;
+}
+
+.pin:focus-visible {
+  outline: var(--stroke) dotted var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
 #suggest {
   flex: 0 1 auto;
   min-width: 0;

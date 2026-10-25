@@ -24,6 +24,9 @@ def rb(code):
 results = []
 # История пользователя: сохранить и вернуть в конце, чтобы тест её не засорял.
 SAVED_HISTORY = rb("BACommunity::Terminal::Session.history.to_json")
+# Булавку снимаем на время теста: проверяем, что незакреплённая строка закрывается.
+SAVED_PIN = rb("BACommunity::Terminal::Window.pinned?.to_json")
+rb("Sketchup.write_default(BACommunity::Terminal::PREFS_KEY, 'popup_pinned', false); nil.to_json")
 
 
 def ok(name, cond, note=''):
@@ -103,4 +106,6 @@ for r in results:
     print('  '.join(r))
 print('%d/%d passed' % (sum(r[0] == 'PASS' for r in results), len(results)))
 rb("h=%s; BACommunity::Terminal::Session.history.replace(h); "
-   "Sketchup.write_default(BACommunity::Terminal::PREFS_KEY, 'history', JSON.generate(h)); nil.to_json" % json.dumps(SAVED_HISTORY))
+   "Sketchup.write_default(BACommunity::Terminal::PREFS_KEY, 'history', JSON.generate(h)); "
+   "Sketchup.write_default(BACommunity::Terminal::PREFS_KEY, 'popup_pinned', %s); nil.to_json"
+   % (json.dumps(SAVED_HISTORY), 'true' if SAVED_PIN else 'false'))

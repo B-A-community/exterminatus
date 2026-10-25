@@ -17,7 +17,8 @@
     itemsKind: 'commands', // 'values' — варианты ответа на вопрос, 'commands' — имена команд
     active: 0,
     navigated: false,
-    lastHeight: 0
+    lastHeight: 0,
+    pinned: false
   };
   var el = {};
 
@@ -386,6 +387,21 @@
     call('submit', value);
   }
 
+  function spaceSubmits(value) {
+    if (!value) return true;
+    if ((value.match(/"/g) || []).length % 2) return false; // внутри кавычек
+    var p = S.prompt;
+    return !(p && p.free_text);
+  }
+
+  function renderPin() {
+    if (!el.pin) return;
+    el.pin.setAttribute('aria-pressed', S.pinned ? 'true' : 'false');
+    var t = S.pinned ? 'Unpin: close the command line after a command' : 'Keep the command line open';
+    el.pin.title = t;
+    el.pin.setAttribute('aria-label', t);
+  }
+
   function historyStep(dir) {
     var list = S.history;
     if (!list.length) return;
@@ -442,9 +458,10 @@
         }
         break;
       case ' ':
-        // Как в Rhino: пробел в пустой строке — Enter (повтор последней
-        // команды или значение по умолчанию).
-        if (!el.input.value) {
+        // Как в Rhino: пробел — это Enter (команда, ответ, повтор последней).
+        // Shift+пробел — обычный пробел, для аргументов в строке
+        // («Move 0,0,500»); в кавычках и в текстовых ответах — тоже пробел.
+        if (!e.shiftKey && spaceSubmits(el.input.value)) {
           e.preventDefault();
           submit();
         }
@@ -468,12 +485,15 @@
       });
       appendLog(data.log, true);
       S.prompt = data.prompt || null;
+      S.pinned = !!data.pinned;
+      renderPin();
       renderPrompt();
       T.focus();
     },
 
     update: function (data) {
       if (data.commands) S.commands = data.commands;
+      if ('pinned' in data) { S.pinned = !!data.pinned; renderPin(); }
       if (data.history) S.history = data.history;
       if (data.resetLog) appendLog([], true);
       if (data.log) appendLog(data.log, false);
@@ -500,6 +520,9 @@
     el.input = document.getElementById('input');
     el.suggest = document.getElementById('suggest');
     el.hint = document.getElementById('input-hint');
+    el.pin = document.getElementById('pin');
+    el.pin.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    el.pin.addEventListener('click', function () { call('pin'); el.input.focus(); });
     el.input.addEventListener('keydown', onKey);
     el.input.addEventListener('input', function () {
       S.active = 0;
