@@ -62,6 +62,18 @@
     info.appendChild(el('div', 'row__name', r.name));
     if (r.description) info.appendChild(el('div', 'row__desc', r.description));
     var links = el('div', 'row__links');
+    if (r.page) {
+      var page = el('button', 'link', 'pachka.space');
+      page.type = 'button';
+      page.title = 'Plugin page: description, guide, download';
+      page.addEventListener('click', function () { call('open', r.page); });
+      links.appendChild(page);
+      var reviews = el('button', 'link', 'Reviews');
+      reviews.type = 'button';
+      reviews.title = 'Comments and wishes on pachka.space';
+      reviews.addEventListener('click', function () { call('open', r.page + '#comments-panel'); });
+      links.appendChild(reviews);
+    }
     if (r.notes) {
       var notes = el('button', 'link', open[r.id] ? 'Hide changes' : "What's new");
       notes.type = 'button';
@@ -136,6 +148,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('refresh').addEventListener('click', function () { call('refresh'); });
+    document.getElementById('site').addEventListener('click', function () { call('open', 'https://pachka.space/'); });
     document.getElementById('all').addEventListener('click', function () { call('update_all'); });
     document.getElementById('restart-now').addEventListener('click', function () { call('restart'); });
     Array.prototype.forEach.call(document.querySelectorAll('.lang button'), function (b) {

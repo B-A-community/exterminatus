@@ -53,6 +53,16 @@ end
 
 cfg = C.config
 repos = api_all("/orgs/#{C::ORG}/repos?type=public").to_h { |r| [r['full_name'].downcase, r] }
+
+# Страницы плагинов на pachka.space. Сайт недоступен — каталог без ссылок,
+# а не без плагинов.
+pages = begin
+  C.site_pages(request(C::SITE_API))
+rescue StandardError => e
+  warn "pachka.space: #{e.message} — pages skipped"
+  {}
+end
+warn "pachka.space: #{pages.size} plugin pages"
 ignored = ->(meta) { meta && Array(meta['topics']).include?(C::IGNORE_TOPIC) }
 
 # Переименованный репозиторий: старое имя из plugins.json → нынешнее (GitHub
@@ -82,6 +92,7 @@ cfg['plugins'].each do |plugin|
   meta = repos[repo.downcase]
   releases = api("/repos/#{repo}/releases?per_page=100") || []
   entry = retire.call(C.entry(plugin.merge('repo' => repo), releases), meta)
+  entry['page'] = C.page_for(entry, pages)
   latest = entry['releases'].first
   warn "#{plugin['id']}: #{latest ? "#{latest['version']} (#{latest['assets'].keys.join(', ')})" : 'no releases'}" \
        "#{entry['status'] == 'retired' ? " — retired: #{entry['reason']}" : ''}"
@@ -117,6 +128,7 @@ repos.values.sort_by { |r| r['name'].downcase }.each do |meta|
   entry = retire.call(base.merge('id' => meta['name'].downcase, 'name' => pkg['extension'],
                                  'extension' => pkg['extension'], 'folder' => pkg['folder'],
                                  'description' => meta['description'].to_s, 'discovered' => true), meta)
+  entry['page'] = C.page_for(entry, pages)
   warn "#{entry['id']}: found #{pkg['extension']} #{latest['version']} (#{latest['assets'].keys.join(', ')})"
   entries << entry
 end

@@ -1,13 +1,13 @@
 {
-  "comment": "Наши плагины находятся сами: публичный репозиторий B-A-community с релизом 1.0+ и плагином SketchUp (.rbz) попадает в список Exterminatus. Этот файл только уточняет. plugins — порядок, имена и описания (extension — имя в Extension Manager, folder — папка в Plugins, там lang.rb). hidden — репозитории, которых в списке не должно быть совсем. retired — выведены из обращения: новые не ставятся, у кого стоит, видят причину. Подробно — docs/RELEASES.md.",
+  "comment": "Наши плагины находятся сами: публичный репозиторий B-A-community с релизом 1.0+ и плагином SketchUp (.rbz) попадает в список Exterminatus. Этот файл только уточняет. plugins — порядок, имена и описания (extension — имя в Extension Manager, folder — папка в Plugins, там lang.rb, page — страница на pachka.space; без неё ищется по имени репозитория). hidden — репозитории, которых в списке не должно быть совсем. retired — выведены из обращения: новые не ставятся, у кого стоит, видят причину. Подробно — docs/RELEASES.md.",
   "plugins": [
-    { "id": "ralncs", "name": "RAL/NCS", "repo": "B-A-community/ralncs", "extension": "RALNCS", "folder": "ralncs",
+    { "id": "ralncs", "name": "RAL/NCS", "repo": "B-A-community/ralncs", "page": "https://pachka.space/plugins/ral-ncs/", "extension": "RALNCS", "folder": "ralncs",
       "description": "RAL and NCS palettes, material audit" },
-    { "id": "area-counter", "name": "Area counter", "repo": "B-A-community/area-counter", "extension": "area counter",
+    { "id": "area-counter", "name": "Area counter", "repo": "B-A-community/area-counter", "page": "https://pachka.space/plugins/area-counter/", "extension": "area counter",
       "folder": "area_counter", "description": "Areas of rooms and faces" },
-    { "id": "monsieur-bezier", "name": "Monsieur Bézier", "repo": "B-A-community/monsieur-bezier",
+    { "id": "monsieur-bezier", "name": "Monsieur Bézier", "repo": "B-A-community/monsieur-bezier", "page": "https://pachka.space/plugins/monsieur-bezier/",
       "extension": "Monsieur Bézier", "folder": "monsieur_bezier", "description": "Bezier curves" },
-    { "id": "pathcopy-advanced", "name": "PathCopy Advanced", "repo": "B-A-community/pathcopy-advanced",
+    { "id": "pathcopy-advanced", "name": "PathCopy Advanced", "repo": "B-A-community/pathcopy-advanced", "page": "https://pachka.space/plugins/pathcopy-advanced/",
       "extension": "PathCopy Advanced", "folder": "pathcopy_advanced", "description": "Copy objects along a path" },
     { "id": "exterminatus", "name": "Exterminatus", "repo": "B-A-community/exterminatus", "extension": "Exterminatus",
       "folder": "exterminatus", "description": "Command line, plugin updates" }

@@ -143,6 +143,7 @@ module BACommunity
             latest: latest && latest['version'], date: latest && latest['date'], notes: latest && latest['notes'],
             langs: latest ? latest['assets'].keys : [],
             previous: previous_release(plugin)&.dig('version'),
+            page: plugin['page'],
             status: status, message: (job && job[:message]) || (status == 'retired' ? plugin['reason'] : nil), pending: pending
           }
         end
@@ -388,6 +389,7 @@ module BACommunity
           { 'id' => id, 'name' => (p['name'].to_s.strip.empty? ? ext : p['name'].to_s), 'repo' => p['repo'].to_s,
             'extension' => ext, 'folder' => folder, 'description' => p['description'].to_s[0, 200],
             'status' => p['status'] == 'retired' ? 'retired' : 'active', 'reason' => p['reason'].to_s[0, 300],
+            'page' => (p['page'].to_s.match?(Catalog::PAGE) ? p['page'].to_s : nil),
             'releases' => clean_releases(p, p['releases']) }
         end
 

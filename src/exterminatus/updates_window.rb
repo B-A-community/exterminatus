@@ -61,6 +61,8 @@ module BACommunity
           dialog.add_action_callback('lang') { |_c, lang| Updater.install_lang = lang.to_s }
           dialog.add_action_callback('restart') { |_c| guarded { Updater.restart } }
           dialog.add_action_callback('close') { |_c| dialog.close }
+          # Ссылки — только на pachka.space, в обычном браузере.
+          dialog.add_action_callback('open') { |_c, url| UI.openURL(url.to_s) if url.to_s.match?(Catalog::PAGE) }
           listener = Updater.listen { push }
           dialog.set_on_closed do
             Updater.unlisten(listener)

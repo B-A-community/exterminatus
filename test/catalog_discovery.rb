@@ -71,6 +71,25 @@ ok.('a folder named .. is refused', pkg.([['x.rb', "SketchupExtension.new('X', '
 ok.('Cyrillic name', pkg.([['tool.rb', "SketchupExtension.new('Инсоляция', 'tool/main')"], ['tool/main.rb', '']]) ==
     { 'extension' => 'Инсоляция', 'folder' => 'tool' })
 
+posts = [{ 'slug' => 'ral-ncs', 'link' => 'https://pachka.space/plugins/ral-ncs/', 'status' => 'publish' },
+         { 'slug' => 'bevel-chamfer', 'link' => 'https://pachka.space/plugins/bevel-chamfer/', 'status' => 'publish' },
+         { 'slug' => 'draft', 'link' => 'https://pachka.space/plugins/draft/', 'status' => 'draft' },
+         { 'slug' => 'evil', 'link' => 'https://evil.example/plugins/evil/', 'status' => 'publish' }]
+pages = C.site_pages(posts)
+ok.('site pages match repos by name without dashes', C.page_for({ 'repo' => 'B-A-community/ralncs' }, pages) ==
+    'https://pachka.space/plugins/ral-ncs/' && C.page_for({ 'repo' => 'B-A-community/bevelchamfer' }, pages) ==
+    'https://pachka.space/plugins/bevel-chamfer/')
+ok.('only published pachka.space pages', pages.size == 2, pages)
+ok.('page from plugins.json wins', C.page_for({ 'repo' => 'B-A-community/ralncs', 'page' => 'https://pachka.space/x/' }, pages) == 'https://pachka.space/x/')
+ok.('no page for an unknown repo', C.page_for({ 'repo' => 'B-A-community/nothing' }, pages).nil?)
+# И настоящий сайт: страницы есть у всех наших плагинов из plugins.json.
+live = fetch(C::SITE_API)
+if live
+  real = C.site_pages(live)
+  missing = C.plugins.reject { |pl| pl['id'] == 'exterminatus' || C.page_for(pl.reject { |k, _| k == 'page' }, real) }
+  ok.('pachka.space has a page for every listed plugin (matched by name)', missing.empty?, missing.map { |pl| pl['id'] })
+end
+
 cfg = { 'plugins' => [], 'hidden' => ['B-A-community/old-tool'],
         'retired' => [{ 'repo' => 'B-A-community/legacy', 'reason' => 'Replaced by PathCopy Advanced' }] }
 ok.('hidden list', C.hidden?('b-a-community/OLD-tool', cfg) && !C.hidden?('B-A-community/legacy', cfg))

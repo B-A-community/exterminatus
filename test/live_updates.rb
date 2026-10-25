@@ -62,6 +62,8 @@ ok.('catalog: foreign hosts, other repos and missing sha256 are dropped; plugins
     pc && pc['extension'] == 'PathCopy Advanced' && pc['folder'] == 'pathcopy_advanced' && pc['releases'].map { |x| x['version'] } == ['1.1'],
     pc && [pc['extension'], pc['folder'], pc['releases'].map { |x| x['version'] }])
 ok.('catalog: a new B-A-community plugin is accepted', by['new-tool'] && by['new-tool']['releases'].size == 1, by['new-tool'])
+ok.('catalog: plugin pages only on pachka.space', by['ralncs']['page'] == 'https://pachka.space/plugins/ral-ncs/' &&
+    U.send(:clean_entry, by['new-tool'].merge('page' => 'https://evil.example/x'))['page'].nil?, by['ralncs']['page'])
 ok.('catalog: unsafe folder names are dropped', !by.key?('sneaky'))
 ok.('catalog: our plugin missing from the catalog stays listed without versions', by['exterminatus'] && by['exterminatus']['releases'].empty?)
 clash = U.send(:sanitize, { 'format' => 1, 'hidden' => ['B-A-community/monsieur-bezier'], 'plugins' => [

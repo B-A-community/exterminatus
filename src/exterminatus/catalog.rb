@@ -31,6 +31,11 @@ module BACommunity
       # Имя папки или id: без «.» и «..», без разделителей пути.
       SAFE_NAME = /\A(?!\.{1,2}\z)[A-Za-z0-9._-]+\z/.freeze
       REPO = %r{\AB-A-community/[A-Za-z0-9._-]+\z}i.freeze
+      # Сайт плагинов: у каждого своя страница с описанием и отзывами.
+      SITE = 'https://pachka.space/'
+      SITE_API = 'https://pachka.space/wp-json/wp/v2/patchka_plugin?per_page=100'
+      # Страница или её вкладка (#comments-panel).
+      PAGE = %r{\Ahttps://pachka\.space/[A-Za-z0-9/_-]*(?:#[A-Za-z0-9_-]+)?\z}.freeze
 
       class << self
         # plugins.json целиком: plugins (уточнения и порядок), hidden, retired.
@@ -128,6 +133,29 @@ module BACommunity
           found.size == 1 ? found.first : nil
         rescue StandardError
           nil
+        end
+
+        # Страницы сайта (ответ WordPress API) → { 'ralncs' => 'https://pachka.space/plugins/ral-ncs/' }.
+        # Страница сопоставляется с репозиторием по имени без знаков: ral-ncs ↔ ralncs.
+        def site_pages(posts)
+          Array(posts).each_with_object({}) do |post, map|
+            link = post.is_a?(Hash) ? post['link'].to_s : ''
+            next unless link.match?(PAGE) && post['status'] == 'publish'
+
+            map[key(post['slug'])] ||= link
+          end
+        end
+
+        # Страница плагина: явно заданная (page в plugins.json) или найденная по имени репозитория.
+        def page_for(plugin, pages)
+          given = plugin['page'].to_s
+          return given if given.match?(PAGE)
+
+          pages[key(plugin['repo'].to_s.split('/').last)]
+        end
+
+        def key(name)
+          name.to_s.downcase.gsub(/[^a-z0-9]/, '')
         end
 
         # Сравнение версий: «1.0» == «1.0.0» < «1.1».
