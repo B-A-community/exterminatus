@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "generated": "2026-10-25T20:26:09Z",
+  "generated": "2026-10-25T20:53:55Z",
   "plugins": [
     {
       "id": "ralncs",
@@ -43,6 +43,26 @@
       "folder": "area_counter",
       "description": "Areas of rooms and faces",
       "releases": [
+        {
+          "version": "1.1.1",
+          "tag": "v1.1.1",
+          "date": "2026-10-25",
+          "notes": "## area counter 1.1.1 — тестовый релиз / test release\n\nПроверка обновления через Exterminatus: у кого стоит 1.1, лаунчер должен предложить «Update» до 1.1.1. Код плагина тот же, что в 1.1, изменился только номер версии.\n\nChecks updating through Exterminatus: with 1.1 installed, the launcher should offer “Update” to 1.1.1. The extension code is the same as 1.1; only the version number changed.\n\n### Скачать / Download\n\n| Русский интерфейс / Russian UI | Английский интерфейс / English UI |\n|---|---|\n| `area-counter-1.1.1-rus.zip` | `area-counter-1.1.1-eng.zip` |\n\nВ архиве — плагин `.rbz` и краткая инструкция (PDF). / Each archive contains the `.rbz` extension and a one-page PDF guide.\n\nАвторы / Authors: Ruslan Tkachenko, Maksar Sanjeev · Apache 2.0 · B&A community",
+          "assets": {
+            "en": {
+              "name": "area-counter-1.1.1-eng.zip",
+              "url": "https://github.com/B-A-community/area-counter/releases/download/v1.1.1/area-counter-1.1.1-eng.zip",
+              "size": 131655,
+              "sha256": "ad989d18ad0ef8eb1f669a78fe6267eb9980faed09031db5e397a2e31dd1d530"
+            },
+            "ru": {
+              "name": "area-counter-1.1.1-rus.zip",
+              "url": "https://github.com/B-A-community/area-counter/releases/download/v1.1.1/area-counter-1.1.1-rus.zip",
+              "size": 140321,
+              "sha256": "9d1a71158787aab9b43ada43527c48efeac272bae6a862d2e27d374eed2bfc12"
+            }
+          }
+        },
         {
           "version": "1.1",
           "tag": "v1.1",
@@ -172,6 +192,20 @@
       "folder": "exterminatus",
       "description": "Command line, plugin updates",
       "releases": [
+        {
+          "version": "0.4.2",
+          "tag": "v0.4.2",
+          "date": "2026-10-25",
+          "notes": "## Exterminatus 0.4.2\n\n- Исправлено: после нескольких нажатий Backspace строка терминала становилась пустой (в окнах SketchUp Backspace вне поля ввода работал как «Назад» браузера). Теперь клавиши, нажатые мимо поля, попадают в поле, а при фокусе на окне курсор сразу ставится в строку.\n- Исправлено: если строку закрыть и сразу открыть, она могла не появиться.\n\nВсе изменения — [CHANGELOG.md](https://github.com/B-A-community/exterminatus/blob/main/CHANGELOG.md).\n\n**Установка:** обновиться из окна Extensions → Exterminatus → Plugin Updates или Window → Extension Manager → Install Extension → `exterminatus-0.4.2.rbz`.",
+          "assets": {
+            "any": {
+              "name": "exterminatus-0.4.2.rbz",
+              "url": "https://github.com/B-A-community/exterminatus/releases/download/v0.4.2/exterminatus-0.4.2.rbz",
+              "size": 103537,
+              "sha256": "7e4438b4d0fda23a96372611c5d0f05582e66b371b9248017392bcaea3ae659c"
+            }
+          }
+        },
         {
           "version": "0.4.1",
           "tag": "v0.4.1",
