@@ -28,7 +28,7 @@ print('%s: %d files, %d KB' % (out, len(names), os.path.getsize(out) // 1024))
 kit = os.path.join(ROOT, 'dist', 'exterminatus-plugin-kit-%s.zip' % version)
 with zipfile.ZipFile(kit, 'w', zipfile.ZIP_DEFLATED) as z:
     z.write(os.path.join(SRC, 'exterminatus', 'terminal_bridge.rb'), 'terminal_bridge.rb')
-    for doc in ('INTEGRATE.md', 'PLUGIN_GUIDE.md'):
+    for doc in ('INTEGRATE.md', 'PLUGIN_GUIDE.md', 'PLUGIN_PROJECT_NOTE.md'):
         z.write(os.path.join(ROOT, 'docs', doc), 'docs/' + doc)
     example = os.path.join(ROOT, 'examples')
     for folder, _, files in os.walk(example):
