@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "generated": "2026-10-25T20:21:06Z",
+  "generated": "2026-10-25T20:21:41Z",
   "plugins": [
     {
       "id": "ralncs",
@@ -172,6 +172,20 @@
       "folder": "exterminatus",
       "description": "Command line, plugin updates",
       "releases": [
+        {
+          "version": "0.4.0",
+          "tag": "v0.4.0",
+          "date": "2026-10-25",
+          "notes": "## Exterminatus 0.4.0\n\n- **Новые плагины появляются в списке сами.** Любой публичный репозиторий B-A-community с релизом 1.0+ и `.rbz` попадает в окно Plugin Updates с кнопкой Install — без обновления Exterminatus.\n- **Убрать из списка:** тема репозитория `exterminatus-ignore` (не показывать) или архив репозитория (выведен из обращения: новые не ставят, у кого стоит — видят «Retired» и причину).\n- **Ссылки на pachka.space:** у каждого плагина — страница с описанием и отзывы, вверху окна — весь каталог.\n- Если GitHub не отвечает, показывается последний полученный список.\n\nПодробно — [docs/RELEASES.md](https://github.com/B-A-community/exterminatus/blob/main/docs/RELEASES.md), все изменения — [CHANGELOG.md](https://github.com/B-A-community/exterminatus/blob/main/CHANGELOG.md).\n\n**Установка:** обновиться из окна Extensions → Exterminatus → Plugin Updates или Window → Extension Manager → Install Extension → `exterminatus-0.4.0.rbz`.",
+          "assets": {
+            "any": {
+              "name": "exterminatus-0.4.0.rbz",
+              "url": "https://github.com/B-A-community/exterminatus/releases/download/v0.4.0/exterminatus-0.4.0.rbz",
+              "size": 103170,
+              "sha256": "221bcb7c4d59197ee07b6f4ea1c4470781fd30cb03c37cca29c20b4c4876eb8a"
+            }
+          }
+        },
         {
           "version": "0.3.2",
           "tag": "v0.3.2",
