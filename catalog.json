@@ -1,11 +1,12 @@
 {
   "format": 1,
-  "generated": "2026-10-25T19:20:32Z",
+  "generated": "2026-10-25T20:21:06Z",
   "plugins": [
     {
       "id": "ralncs",
       "name": "RAL/NCS",
       "repo": "B-A-community/ralncs",
+      "page": "https://pachka.space/plugins/ral-ncs/",
       "extension": "RALNCS",
       "folder": "ralncs",
       "description": "RAL and NCS palettes, material audit",
@@ -30,12 +31,14 @@
             }
           }
         }
-      ]
+      ],
+      "status": "active"
     },
     {
       "id": "area-counter",
       "name": "Area counter",
       "repo": "B-A-community/area-counter",
+      "page": "https://pachka.space/plugins/area-counter/",
       "extension": "area counter",
       "folder": "area_counter",
       "description": "Areas of rooms and faces",
@@ -94,12 +97,14 @@
             }
           }
         }
-      ]
+      ],
+      "status": "active"
     },
     {
       "id": "monsieur-bezier",
       "name": "Monsieur Bézier",
       "repo": "B-A-community/monsieur-bezier",
+      "page": "https://pachka.space/plugins/monsieur-bezier/",
       "extension": "Monsieur Bézier",
       "folder": "monsieur_bezier",
       "description": "Bezier curves",
@@ -124,12 +129,14 @@
             }
           }
         }
-      ]
+      ],
+      "status": "active"
     },
     {
       "id": "pathcopy-advanced",
       "name": "PathCopy Advanced",
       "repo": "B-A-community/pathcopy-advanced",
+      "page": "https://pachka.space/plugins/pathcopy-advanced/",
       "extension": "PathCopy Advanced",
       "folder": "pathcopy_advanced",
       "description": "Copy objects along a path",
@@ -154,7 +161,8 @@
             }
           }
         }
-      ]
+      ],
+      "status": "active"
     },
     {
       "id": "exterminatus",
@@ -192,7 +200,12 @@
             }
           }
         }
-      ]
+      ],
+      "status": "active",
+      "page": null
     }
+  ],
+  "hidden": [
+
   ]
 }
