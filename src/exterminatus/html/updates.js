@@ -63,7 +63,7 @@
     if (r.description) info.appendChild(el('div', 'row__desc', r.description));
     var links = el('div', 'row__links');
     if (r.page) {
-      var page = el('button', 'link', 'pachka.space');
+      var page = el('button', 'link', 'Plugin page');
       page.type = 'button';
       page.title = 'Plugin page: description, guide, download';
       page.addEventListener('click', function () { call('open', r.page); });
@@ -80,12 +80,6 @@
       notes.setAttribute('aria-expanded', open[r.id] ? 'true' : 'false');
       notes.addEventListener('click', function () { open[r.id] = !open[r.id]; render(); });
       links.appendChild(notes);
-    }
-    if (r.previous && r.status !== 'busy' && r.status !== 'restart') {
-      var back = el('button', 'link', 'Roll back to ' + r.previous);
-      back.type = 'button';
-      back.addEventListener('click', function () { call('rollback', r.id); });
-      links.appendChild(back);
     }
     if (links.children.length) info.appendChild(links);
     item.appendChild(info);

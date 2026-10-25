@@ -5,7 +5,8 @@ require 'json'
 module BACommunity
   module Terminal
     # Окно «Plugin Updates»: наши плагины, у каждого кнопка «Update» или
-    # «Install», сверху «Update all», снизу — перезапуск SketchUp.
+    # «Install» и ссылки на страницу плагина, сверху «Update all», снизу —
+    # перезапуск SketchUp. Отката в окне нет: только командой PluginRollback.
     module UpdatesWindow
       HTML = File.join(PLUGIN_PATH, 'html', 'updates.html')
 
@@ -56,7 +57,6 @@ module BACommunity
           dialog.add_action_callback('ready') { |_c| push }
           dialog.add_action_callback('refresh') { |_c| Updater.refresh }
           dialog.add_action_callback('install') { |_c, id| guarded { Updater.install(id.to_s) } }
-          dialog.add_action_callback('rollback') { |_c, id| guarded { rollback(id.to_s) } }
           dialog.add_action_callback('update_all') { |_c| guarded { Updater.update_all } }
           dialog.add_action_callback('lang') { |_c, lang| Updater.install_lang = lang.to_s }
           dialog.add_action_callback('restart') { |_c| guarded { Updater.restart } }
@@ -69,15 +69,6 @@ module BACommunity
             @dialog = nil if @dialog.equal?(dialog)
           end
           dialog
-        end
-
-        def rollback(id)
-          plugin = Updater.find(id) or return
-          prev = Updater.previous_release(plugin) or return
-
-          return unless UI.messagebox("Install #{plugin['name']} #{prev['version']} instead of the current version?", MB_YESNO) == IDYES
-
-          Updater.install(id, version: prev['version'])
         end
 
         def guarded

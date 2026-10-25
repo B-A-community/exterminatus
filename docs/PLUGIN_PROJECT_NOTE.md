@@ -9,7 +9,7 @@
 
 - **ставит и обновляет наши плагины** из релизов GitHub организации
   B-A-community: окно Extensions → Exterminatus → Plugin Updates, кнопки
-  Update / Install / Roll back / Update all;
+  Update / Install / Update all, ссылки на страницу плагина;
 - **запускает команды по имени из строки терминала**, как в Rhino: команды
   SketchUp и наших плагинов, параметры спрашиваются в строке.
 

@@ -5,7 +5,7 @@
 вызываются по имени, а параметры спрашиваются прямо в строке. Чужие плагины
 терминал не подхватывает.
 
-Версия 0.4.0 · лицензия [Apache 2.0](LICENSE) · © 2026 B&A community
+Версия 0.4.1 · лицензия [Apache 2.0](LICENSE) · © 2026 B&A community
 
 Создатели: maksarsanjeev — см. [AUTHORS](AUTHORS)
 
@@ -185,7 +185,6 @@ Extensions → Exterminatus → **Plugin Updates…** открывает окн�
 
 - **Update** — обновить;
 - **Install** — установить; язык выбирается переключателем RU/EN;
-- **Roll back** — вернуть предыдущий релиз;
 - **Update all** — обновить всё сразу.
 
 После обновления кнопка **Restart SketchUp** перезапускает SketchUp, чтобы
@@ -227,7 +226,7 @@ BACommunity::Terminal.command(id: 'RalFan', plugin: 'RALNCS', description: 'Open
 
 ## Установка
 
-Window → Extension Manager → Install Extension → `exterminatus-0.4.0.rbz`.
+Window → Extension Manager → Install Extension → `exterminatus-0.4.1.rbz`.
 Пакет собирается из `src/`: `python build_rbz.py` → `dist/`.
 
 ## Установка для разработки
