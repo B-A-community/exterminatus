@@ -1,10 +1,11 @@
 # Exterminatus
 
 Общий командный терминал для SketchUp 2024, как командная строка Rhino.
-Команды плагинов B&A community и стандартные команды SketchUp вызываются по
-имени, а параметры спрашиваются прямо в строке.
+Команды наших плагинов B&A community и стандартные команды SketchUp
+вызываются по имени, а параметры спрашиваются прямо в строке. Чужие плагины
+терминал не подхватывает.
 
-Версия 0.1.0 · лицензия [Apache 2.0](LICENSE) · © 2026 B&A community
+Версия 0.2.0 · лицензия [Apache 2.0](LICENSE) · © 2026 B&A community
 
 Создатели: maksarsanjeev — см. [AUTHORS](AUTHORS)
 
@@ -35,8 +36,12 @@ Copy 1000,0,0 count=5      пять копий с шагом 1000
 Rotate 90 axis=x           повернуть вокруг центра выделения
 PushPull 1200/4            выдавить выделенные грани на 300
 Top; ZoomExtents           цепочка команд
+Rectangle 0,0 1000,500; PushPull 300   созданное первой командой выделяется для второй
 MakeComponent name=Door    аргумент по имени
+SetTag Стены               выделенное — на тег (новый создаётся)
+Help Rectangle             параметры и примеры команды
 Commands architools        список команд плагина
+ьщму, круг, Rectnagle      понимает раскладку, русские слова и опечатки
 ```
 
 | Клавиша | Действие |
@@ -72,6 +77,40 @@ Enter принимает значение по умолчанию. Клик по
 Число, набранное при активном инструменте плагина, уходит этому инструменту,
 как ввод в поле Measurements.
 
+### Неточный ввод
+
+Терминал пытается понять, что имели в виду:
+
+- **русская раскладка.** `ьщму` — это `move`. Числа тоже: `500б0б0` → `500,0,0`,
+  `1ю5ь` → `1.5m`. Имена параметров тоже: `здфту=xy` → `plane=xy`;
+- **русские слова.** `круг`, `переместить`, `выдавить`, `тег`. Слова есть у
+  всех команд SketchUp, а плагины добавляют свои;
+- **опечатки.** `Rectnagle`, `Polgon`. Одна ошибка в коротком имени, две — в
+  длинном.
+
+Найденная команда сразу выполняется, в выводе видно `ьщму → Move`. Команды,
+которые удаляют (Delete, Purge, Explode, SceneDelete…), по опечатке не
+запускаются: терминал только спросит «Did you mean Delete?». Незнакомое имя
+параметра подсказывает похожее или перечисляет все.
+
+### Цепочки, макросы, пресеты
+
+- **Результат как выделение.** В цепочке `a; b` созданное командой `a`
+  выделяется для `b`. `SelectLast` выделяет созданное последней командой и
+  позже.
+- **Макросы.** `Define Fence "Beam; PathCopy 600"` — и `Fence` становится
+  командой. `$1`, `$2` — значения: `Define Lift "Move 0,0,$1"`, потом `Lift 500`.
+  Ещё есть `Macros` и `Undefine Fence`.
+- **Пресеты.** `PresetSave Circle Fine` запоминает текущие опции команды.
+  Применить их можно так:
+  - `Circle preset=Fine`;
+  - опция `Preset` в строке вопроса.
+
+  Ещё есть `Presets` и `PresetDelete Circle Fine`.
+- **Обмен с коллегой.** `LibraryExport` / `LibraryImport` переносят макросы и
+  пресеты одним файлом. Хранятся они в
+  `%APPDATA%\BACommunity\Exterminatus\library.json`.
+
 ### Точки и клики
 
 Если команда спрашивает точку, отвечать можно как удобно:
@@ -106,20 +145,23 @@ Arc строится как у SketchUp: два конца, потом прог�
 
 ## Стандартные команды SketchUp
 
-94 команды, полный список выводит `Commands sketchup`.
+113 команд, полный список выводит `Commands sketchup`.
 
 | Группа | Команды |
 |---|---|
 | Рисование | Freehand, RotatedRectangle, Arc, ArcCenter, Pie, Text, Text3D, Dimension, Tape, Protractor, Axes, SectionPlane |
 | Рисование в духе Rhino | Line, Rectangle, Circle, Arc, ArcCenter, Pie, Polygon |
-| Правка в духе Rhino | Move, Copy, Rotate, Scale, PolarArray, Offset, PushPull |
+| Правка в духе Rhino | Move, Copy, Rotate, Scale, Mirror, PolarArray, Offset, PushPull, Sweep (Follow Me), Soften, Unsoften |
+| Свойства | SetTag, SetMaterial (имя, цвет `Red`, `#ff8800`, `None`), Rename, Info, Isolate, Unisolate |
+| Пометки | Guide, GuidePoint, DimLinear, Label, SectionAt |
+| Твёрдые тела (Pro) | Union, Subtract, SolidIntersect, OuterShell |
 | Инструменты правки | Select, Lasso, Erase, Paint, TagTool, Flip, FollowMe |
 | Камера | Orbit, Pan, Zoom, ZoomWindow, ZoomExtents, ZoomSelected, PreviousView, PositionCamera, LookAround, Walk, Top, Bottom, Front, Back, Left, Right, Iso, Perspective, Parallel |
 | Стиль | Wireframe, HiddenLine, Shaded, ShadedTextures, Monochrome, ToggleXRay, ToggleBackEdges, ToggleAxes, ToggleGuides, ToggleHidden, ToggleHiddenObjects, ToggleSectionPlanes, ToggleSectionCuts, ToggleShadows, ToggleFog |
 | Правка | Undo, Redo, CopyToClipboard, Cut, Paste, Delete, Hide, Unhide, UnhideAll, SelectAll, SelectNone, InvertSelection, Group, MakeComponent, Explode, MakeUnique, ReverseFaces, DeleteGuides, Purge |
 | Сцены | SceneAdd, SceneUpdate, SceneDelete, SceneNext, ScenePrevious |
 | Файл | New, Open, Save, Print, RubyConsole, ExtensionManager |
-| Терминал | Commands (Help), History, ClearLog (Cls), CommandBar |
+| Терминал | Help, Commands, History, ClearLog (Cls), CommandBar, SelectLast, Define, Undefine, Macros, PresetSave, PresetDelete, Presets, LibraryExport, LibraryImport, PluginCheck |
 
 Где у SketchUp есть действие (`Sketchup.send_action`), команда вызывает его
 и ведёт себя так же, как кнопка. Передать число родному инструменту терминал
@@ -131,21 +173,32 @@ Arc, Polygon, Move, Copy, Rotate, Scale, Offset и PushPull — свои ком�
 
 ## Подключение плагинов
 
-Плагин копирует к себе [`terminal_bridge.rb`](src/exterminatus/terminal_bridge.rb)
-и регистрирует команды:
+Терминал поддерживает только наши плагины. Плагин копирует к себе
+[`terminal_bridge.rb`](src/exterminatus/terminal_bridge.rb) и описывает каждую
+команду один раз. Из описания получаются:
+
+- пункт меню и кнопка на панели;
+- команда терминала;
+- справка;
+- поиск по русским словам и пресеты.
 
 ```ruby
-BACommunity::Terminal.register(id: 'RalFan', plugin: 'RALNCS',
-                               description: 'Open the RAL/NCS color fan') { Fan.show }
+BACommunity::Terminal.command(id: 'RalFan', plugin: 'RALNCS', description: 'Open the RAL/NCS color fan',
+                              keywords: 'цвет веер', menu: 'Extensions/RALNCS', menu_text: 'Color Fan',
+                              toolbar: 'RALNCS', icon: File.join(__dir__, 'icons', 'fan.svg')) { Fan.show }
 ```
 
-Без терминала плагин работает как раньше. Подробно — с параметрами,
-приглашениями из инструментов и чек-листом — в
-[docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md).
+Без терминала пункт меню и кнопка работают сами.
+
+- Пошагово для одного плагина — [docs/INTEGRATE.md](docs/INTEGRATE.md). Там же
+  готовое задание для Claude или Codex в проекте плагина.
+- Справочник — [docs/PLUGIN_GUIDE.md](docs/PLUGIN_GUIDE.md).
+- Рабочий пример — [examples/hello_plugin](examples/hello_plugin).
+- `PluginCheck` в терминале показывает, что в подключении не так.
 
 ## Установка
 
-Window → Extension Manager → Install Extension → `exterminatus-0.1.0.rbz`.
+Window → Extension Manager → Install Extension → `exterminatus-0.2.0.rbz`.
 Пакет собирается из `src/`: `python build_rbz.py` → `dist/`.
 
 ## Установка для разработки

@@ -34,6 +34,72 @@
     return (id.match(/[A-Z0-9]/g) || []).join('').toLowerCase();
   }
 
+  // Русская раскладка → латинская по клавишам: «ьщму» → «move».
+  var RU = 'йцукенгшщзхъфывапролджэячсмитьбюё';
+  var EN = "qwertyuiop[]asdfghjkl;'zxcvbnm,.`";
+  function toLatin(text) {
+    var out = '';
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i], low = ch.toLowerCase(), at = RU.indexOf(low);
+      out += at < 0 ? ch : (ch === low ? EN[at] : EN[at].toUpperCase());
+    }
+    return out;
+  }
+
+  function cyrillic(text) {
+    return /[а-яё]/i.test(text);
+  }
+
+  // Дамерау — Левенштейн: перестановка двух букв — одна ошибка.
+  function distance(a, b) {
+    var prev2 = null, prev = [], i, j;
+    for (j = 0; j <= b.length; j++) prev.push(j);
+    for (i = 1; i <= a.length; i++) {
+      var cur = [i];
+      for (j = 1; j <= b.length; j++) {
+        var v = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        if (prev2 && i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) v = Math.min(v, prev2[j - 2] + 1);
+        cur.push(v);
+      }
+      prev2 = prev;
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+
+  // Лучшее из: как набрано, в латинской раскладке, русское слово, опечатка.
+  function fuzzyScore(cmd, q) {
+    var best = score(cmd, q);
+    if (cyrillic(q)) {
+      var en = score(cmd, toLatin(q));
+      if (en && (!best || en.score - 5 > best.score)) best = { score: en.score - 5, marks: en.marks };
+      var kw = keywordScore(cmd, q);
+      if (kw && (!best || kw.score > best.score)) best = kw;
+      q = toLatin(q);
+    }
+    if (!best && q.length >= 3) {
+      var limit = q.length >= 7 ? 2 : 1, d = 99;
+      [cmd.id].concat(cmd.aliases).forEach(function (n) {
+        if (n.length >= 3) d = Math.min(d, distance(q, n.toLowerCase()));
+      });
+      // Опечатку в команде, которая удаляет, Enter не исправляет сам.
+      if (d <= limit) best = { score: 400 - d * 50 - cmd.id.length, marks: [], unsafe: !!cmd.destructive };
+    }
+    return best;
+  }
+
+  function keywordScore(cmd, q) {
+    var words = cmd.keywords || [], i;
+    for (i = 0; i < words.length; i++) {
+      var k = words[i];
+      if (k === q) return { score: 900, marks: [], note: k };
+      if ((q.length >= 3 && k.indexOf(q) === 0) || (k.length >= 4 && q.indexOf(k) === 0)) {
+        return { score: 600 - k.length, marks: [], note: k };
+      }
+    }
+    return null;
+  }
+
   // → {score, marks: [индексы символов id]} или null
   function score(cmd, q) {
     var id = cmd.id, low = id.toLowerCase(), i, j;
@@ -85,7 +151,8 @@
     if (!p) return true;
     if (!p.command || p.free_text || (p.values && p.values.length)) return false;
     var q = value.trim().toLowerCase();
-    if (!/^[a-z]/.test(q)) return false;
+    if (!/^[a-zа-яё]/.test(q)) return false;
+    if (cyrillic(q)) q = toLatin(q);
     return !(p.options || []).some(function (o) { return o.name.toLowerCase().indexOf(q) === 0; });
   }
 
@@ -105,9 +172,9 @@
     var q = tok.text.toLowerCase();
     var out = [];
     S.commands.forEach(function (cmd) {
-      var m = score(cmd, q);
+      var m = fuzzyScore(cmd, q);
       if (m) {
-        out.push({ id: cmd.id, value: cmd.id, plugin: cmd.plugin, desc: cmd.description,
+        out.push({ id: cmd.id, value: cmd.id, plugin: cmd.plugin, desc: cmd.description, note: m.note, unsafe: m.unsafe,
                    marks: m.marks, score: m.score + Math.min(S.usage[cmd.id.toLowerCase()] || 0, 20) * 5 });
       }
     });
@@ -142,7 +209,10 @@
       row.id = 'sg-' + i;
       row.setAttribute('role', 'option');
       row.setAttribute('aria-selected', i === S.active ? 'true' : 'false');
-      row.appendChild(marked('sg__id', item.id, item.marks));
+      var id = marked('sg__id', item.id, item.marks);
+      // Русское слово, по которому нашлась команда: «Circle  круг».
+      if (item.note) id.appendChild(span('sg__note', item.note));
+      row.appendChild(id);
       row.appendChild(span('sg__plugin', item.plugin));
       if (item.desc) row.appendChild(span('sg__desc', item.desc));
       row.addEventListener('mousedown', function (e) {
@@ -298,7 +368,7 @@
       if (S.navigated) value = item.value;
     } else if (item) {
       var tok = commandToken(value);
-      if (tok && tok.text && (S.navigated || !isExactName(tok.text))) {
+      if (tok && tok.text && (S.navigated || (!isExactName(tok.text) && !item.unsafe))) {
         value = value.slice(0, tok.start) + item.value;
       }
     }

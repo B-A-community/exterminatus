@@ -84,13 +84,15 @@ module BACommunity
           register_modify
           register_draw
           register_curves
+          register_native
+          register_own
         end
 
         private
 
         def add(id, aliases, description, params = [], preview: nil, repeat: nil, &run)
           spec = { id: id, plugin: PLUGIN, description: description, aliases: aliases, params: params,
-                   preview: preview, repeat: repeat }
+                   preview: preview, repeat: repeat, keywords: KEYWORDS[id], destructive: DESTRUCTIVE.include?(id) }
           _cmd, err = Registry.add(spec, run, builtin: true)
           warn "Exterminatus: #{err}" if err
         end

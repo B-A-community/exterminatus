@@ -328,6 +328,16 @@ body:is(.mode-bar, .mode-popup) {
   text-align: right;
 }
 
+.sg__note {
+  margin-left: var(--space-2);
+  color: var(--muted);
+  font-family: var(--font-ui, inherit);
+}
+
+.sg--active .sg__note {
+  color: inherit;
+}
+
 .sg__desc {
   grid-column: 2;
   grid-row: 1;

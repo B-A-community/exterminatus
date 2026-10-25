@@ -6,8 +6,12 @@ module BACommunity
     # ключами параметров (Symbol). preview(args, view) рисует результат, пока
     # пользователь выбирает точку в модели.
     # repeat(args) → Hash готовых значений для следующего круга (Line).
+    # keywords — русские слова для поиска («переместить сдвиг»), examples —
+    # строки для справки (Help PathCopy).
+    # destructive — удаляет или необратимо меняет: опечатка такую команду не
+    # запускает, только подсказывает.
     Command = Struct.new(:id, :plugin, :description, :aliases, :params, :run, :preview, :repeat, :builtin,
-                         keyword_init: true) do
+                         :keywords, :examples, :destructive, keyword_init: true) do
       def names
         [id, *aliases]
       end
@@ -18,7 +22,7 @@ module BACommunity
 
       def to_h
         { id: id, plugin: plugin, description: description.to_s, aliases: aliases, builtin: builtin,
-          params: params.map(&:to_h) }
+          keywords: keywords, destructive: destructive ? true : false, params: params.map(&:to_h) }
       end
     end
 
@@ -56,15 +60,26 @@ module BACommunity
           dup = params.map { |p| p.name.downcase }.tally.select { |_, n| n > 1 }.keys
           return [nil, "#{id}: duplicate parameter names #{dup.inspect}"] if dup.any?
 
+          keywords = Array(spec[:keywords]).flat_map { |k| k.to_s.downcase.split(/[\s,]+/) }.reject(&:empty?).uniq
           cmd = Command.new(id: id, plugin: (spec[:plugin] || 'Unknown').to_s, description: spec[:description].to_s,
                             aliases: aliases, params: params, run: run, preview: spec[:preview], repeat: spec[:repeat],
-                            builtin: builtin)
+                            builtin: builtin, keywords: keywords, examples: Array(spec[:examples]).map(&:to_s),
+                            destructive: spec[:destructive] ? true : false)
           @commands[id.downcase] = cmd
           cmd.names.each { |n| @names[n.downcase] = cmd }
           @revision += 1
           [cmd, taken.empty? ? nil : "#{id}: aliases #{taken.join(', ')} already taken, skipped"]
         rescue ArgumentError, KeyError => e
           [nil, "#{spec[:id]}: #{e.message}"]
+        end
+
+        # Отказы и предупреждения регистрации — для PluginCheck.
+        def problem(plugin, text)
+          (@problems ||= []) << { plugin: plugin.to_s, text: text.to_s }
+        end
+
+        def problems
+          @problems || []
         end
 
         def remove(id)

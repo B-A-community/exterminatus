@@ -47,6 +47,8 @@ module BACommunity
         @ask_if = spec[:ask_if]
         @kinds = Array(spec[:kinds])
         @custom = spec[:parse]
+        @suggest = spec[:suggest]
+        @preselect = spec.key?(:preselect) ? spec[:preselect] : true
 
         raise ArgumentError, "parameter name must be Latin letters and digits: #{@name.inspect}" unless @name.match?(NAME_PATTERN)
         raise ArgumentError, "#{@name}: unknown type #{@type.inspect}" unless TYPES.include?(@type)
@@ -105,6 +107,24 @@ module BACommunity
         @type == :option || @type == :bool
       end
 
+      # Варианты для подсказок: values у :option, Yes/No, suggest: у строки
+      # (имена тегов и материалов модели — suggest: -> { [...] }).
+      def choices
+        return @values if @type == :option
+        return %w[Yes No] if @type == :bool
+        return [] unless @suggest
+
+        Array(@suggest.respond_to?(:call) ? @suggest.call : @suggest).map(&:to_s)
+      rescue StandardError
+        []
+      end
+
+      # preselect: false — второе выделение (Subtract: чем вычитать): не
+      # берётся из уже выделенного, а выделяется заново.
+      def preselect?
+        @preselect ? true : false
+      end
+
       # Выделение, подходящее параметру (kinds: [Sketchup::Face]); nil — пусто.
       def selected
         items = Sketchup.active_model.selection.to_a
@@ -116,6 +136,17 @@ module BACommunity
       # которой считаются «@…» и голое число; cursor — точка под курсором;
       # args — уже известные значения команды (для parse:).
       def parse(text, ctx = {})
+        value, err = parse_text(text, ctx)
+        # «500б0б0» — набрано в русской раскладке. Строки не трогаем: там
+        # кириллица своя.
+        if err && @type != :string && Layout.cyrillic?(text)
+          retry_value, retry_err = parse_text(Layout.to_en(text), ctx)
+          return [retry_value, nil] unless retry_err
+        end
+        [value, err]
+      end
+
+      private def parse_text(text, ctx)
         s = text.to_s.strip
         return [nil, nil] if auto? && s.casecmp?(AUTO)
 

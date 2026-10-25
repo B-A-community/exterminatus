@@ -15,10 +15,25 @@ module BACommunity
       # Блок получает (args) или (args, ctx) и возвращает строку-сообщение,
       # { ok:, message: } или false. → true, если команда принята.
       def register(**spec, &run)
-        cmd, err = Registry.add(spec, run)
-        warn "Exterminatus: #{err}" if err
+        cmd, err = Registry.add(spec.reject { |k, _| Kit::UI_KEYS.include?(k.to_sym) }, run)
+        if err
+          warn "Exterminatus: #{err}"
+          Registry.problem(spec[:plugin], err)
+        end
         Window.sync if cmd
         cmd ? true : false
+      end
+
+      # Пункт меню или кнопка из Terminal.command: запустить команду как
+      # набранную. run — блок этой команды: если имя досталось другому
+      # плагину, false (мост тогда запустит свою команду сам).
+      def invoke(id, run = nil)
+        cmd = Registry.find(id)
+        return false unless cmd && cmd.id.casecmp?(id.to_s) && (run.nil? || cmd.run.equal?(run))
+
+        Session.invoke_command(cmd)
+        Window.after_invoke
+        true
       end
 
       def unregister(id)

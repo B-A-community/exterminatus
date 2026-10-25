@@ -26,6 +26,24 @@ module BACommunity
       # repeat — повтор команды с repeat: (Line идёт дальше от последней точки);
       # interactive — команда набрана без аргументов (только тогда она повторяется).
       Run = Struct.new(:cmd, :args, :ask, :sub, :confirm, :repeat, :interactive)
+
+      # Что команда добавила в текущий контекст: без обхода всей модели.
+      class Collector < Sketchup::EntitiesObserver
+        attr_reader :items
+
+        def initialize
+          super
+          @items = []
+        end
+
+        def onElementAdded(_entities, entity)
+          @items << entity
+        end
+      end
+      # Пресет: «PathCopy preset=Забор» или опция Preset в строке приглашения.
+      PRESET = 'Preset'
+      PRESET_KEY = :_preset
+      MAX_EXPANSIONS = 50
       External = Struct.new(:text, :default, :options, :tool_id, :block)
 
 
@@ -77,6 +95,7 @@ module BACommunity
         def option(name)
           if @run
             param = option_params.find { |p| p.name.casecmp?(name.to_s) }
+            param ||= preset_param if name.to_s.casecmp?(PRESET)
             choose_option(param) if param
           elsif @external
             key = @external.options.keys.find { |k| k.casecmp?(name.to_s) }
@@ -106,12 +125,39 @@ module BACommunity
 
         # ---------- API для плагинов ----------
 
+        # Пункт меню или кнопка плагина (Terminal.command): как набранное имя.
+        # Ждущая команда отменяется, как при смене инструмента.
+        def invoke_command(cmd)
+          if @run || @external
+            @queue.clear
+            cancel
+            @run = nil
+          end
+          run_typed(cmd.id)
+        end
+
+        # Сейчас нужен ответ с клавиатуры, а не клик в модели: окну пора
+        # открыться (команду запустили из меню).
+        def wants_typing?
+          return !@external.tool_id if @external && !@run
+          return false unless @run
+
+          param = current_param
+          param.nil? || !param.pickable?
+        end
+
         # Строка из плагина (Terminal.run). Не попадает в историю. Если её
         # вызвали изнутри команды, она выполнится сразу после этой команды,
         # перед остатком цепочки.
         def run_line(line)
           chain, err = lex(line.to_s)
           return emit(:error, err) if err
+
+          # Макрос, вызывающий сам себя, — не бесконечно. Строка извне (не из
+          # команды) начинает счёт заново.
+          @expansions = 0 unless @executing
+          @expansions += 1
+          return fail_chain('Too many nested command lines (a macro calls itself?)') if @executing && @expansions > MAX_EXPANSIONS
 
           if @executing
             @queue.unshift(*chain)
@@ -142,6 +188,11 @@ module BACommunity
           @external = nil
           resume
           Window.sync
+        end
+
+        # Значения, которые команда возьмёт в следующий раз (для PresetSave).
+        def remembered(cmd)
+          cmd.params.select(&:remember?).to_h { |p| [p.key, last_value(cmd, p)] }
         end
 
         # Команду сняли с регистрации — её запомненные значения больше не нужны.
@@ -251,8 +302,9 @@ module BACommunity
               command: @run.cmd.id,
               text: param ? param_prompt(param) : 'Press Enter to run',
               default: param && !param.selection? ? param.format(@run.args[param.key]).then { |s| s.empty? ? nil : s } : nil,
-              options: option_params.reject { |p| p == param }.map { |p| { name: p.name, value: p.format(@run.args[p.key]) } },
-              values: param&.type == :option ? param.values : (param&.type == :bool ? %w[Yes No] : []),
+              options: option_params.reject { |p| p == param }.map { |p| { name: p.name, value: p.format(@run.args[p.key]) } } +
+                       (param&.key != PRESET_KEY && Library.presets(@run.cmd.id).any? ? [{ name: PRESET, value: '' }] : []),
+              values: param ? param.choices : [],
               # Ответ — любой текст: имена команд в подсказках не предлагать.
               free_text: param&.type == :string
             }
@@ -290,17 +342,18 @@ module BACommunity
           @normals = {}
           tokens = tokens.dup
           name = tokens.shift
-          cmd, similar = Registry.resolve(name)
+          cmd, how, similar = Fuzzy.resolve(name)
           unless cmd
             hint = similar.any? ? " Did you mean #{similar.join(', ')}?" : ''
             return fail_chain("Unknown command: #{name}.#{hint}")
           end
+          emit(:info, "#{name} → #{cmd.id}") if how
 
           args, err = bind(cmd, tokens)
           return fail_chain(err) if err
 
           defaults = cmd.params.reject { |p| args.key?(p.key) }
-          defaults.each { |p| args[p.key] = p.selection? ? p.selected : last_value(cmd, p) }
+          defaults.each { |p| args[p.key] = p.selection? ? (p.selected if p.preselect?) : last_value(cmd, p) }
           # Без аргументов спрашиваем всё, что prompt: true; с аргументами —
           # только то, без чего нельзя. Выделение — только если оно пустое.
           ask = cmd.params.select do |p|
@@ -318,6 +371,9 @@ module BACommunity
 
         def advance
           @run.ask.shift while @run.ask.any? && !@run.ask.first.wanted?(@run.args)
+          param = current_param
+          # Второе выделение (чем вычитать) выделяют заново.
+          Sketchup.active_model.selection.clear if param&.selection? && !param.preselect? && @run.args[param.key].nil?
           if @run.sub || @run.ask.any? || @run.confirm
             Window.sync
             Picker.follow(current_param, @run)
@@ -340,10 +396,17 @@ module BACommunity
             return accept
           end
 
-          opt = option_params.find { |p| p != param && p.name.casecmp?(text) }
+          return apply_preset_answer(text) if param&.key == PRESET_KEY
+
+          word = Layout.cyrillic?(text) ? Layout.to_en(text) : text
+          opt = option_params.find { |p| p != param && p.name.casecmp?(word) }
           return choose_option(opt) if opt
-          return set_option(Regexp.last_match) if text.match(/\A([A-Za-z][A-Za-z0-9]*)=(.*)\z/) &&
-                                                   option_params.any? { |p| p.name.casecmp?(Regexp.last_match(1)) }
+          return choose_option(preset_param) if word.casecmp?(PRESET) && Library.presets(@run.cmd.id).any?
+          if (m = text.match(/\A([A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё0-9]*)=(.*)\z/))
+            key = Layout.cyrillic?(m[1]) ? Layout.to_en(m[1]) : m[1]
+            return apply_preset_answer(m[2]) if key.casecmp?(PRESET)
+            return set_option(key, m[2]) if option_params.any? { |p| p.name.casecmp?(key) }
+          end
           return switch_to(text) if param.nil? && other_command?(text)
           return emit(:error, 'Press Enter to run, Esc to cancel, or click an option') if param.nil?
 
@@ -372,9 +435,9 @@ module BACommunity
         end
 
         # «Count=3» в ответ на вопрос: опция меняется, вопрос остаётся тот же.
-        def set_option(match)
-          opt = option_params.find { |p| p.name.casecmp?(match[1]) }
-          value, err = opt.parse(match[2], args: resolved(@run))
+        def set_option(name, text)
+          opt = option_params.find { |p| p.name.casecmp?(name) }
+          value, err = opt.parse(text, args: resolved(@run))
           return emit(:error, err) if err
 
           @run.args[opt.key] = value
@@ -398,8 +461,16 @@ module BACommunity
           Picker.stop
           run.cmd.params.each { |p| @last_values[run.cmd.id][p.key] = run.args[p.key] if p.remember? }
           args = resolved(run)
-          res = invoke(run.cmd, args)
+          added = Collector.new
+          ents = Sketchup.active_model.active_entities
+          ents.add_observer(added)
+          begin
+            res = invoke(run.cmd, args)
+          ensure
+            ents.remove_observer(added)
+          end
           report(run.cmd, res)
+          pass_on(res, added.items)
           return restart(run, args) if run.cmd.repeat && run.interactive && succeeded?(res)
 
           # send_action SketchUp выполняет позже, в своём цикле сообщений:
@@ -459,6 +530,7 @@ module BACommunity
           remember(text)
           emit(:echo, text)
           @last_failed = false
+          @expansions = 0
           chain, err = lex(text)
           return emit(:error, err) if err
 
@@ -472,7 +544,11 @@ module BACommunity
         # молча перехватывает всё, что набирают.
         def other_command?(text)
           name = text.split(/[\s;]/).first.to_s
-          !name.empty? && !Registry.find(name).nil?
+          return false if name.empty?
+          return true if Registry.find(name)
+
+          _cmd, how, = Fuzzy.resolve(name)
+          %i[layout keyword].include?(how)
         end
 
         def switch_to(text)
@@ -602,6 +678,9 @@ module BACommunity
 
           @run.args[param.key] = items
           echo_answer(param, param.format(items))
+          # Опции были видны, пока выделяли: Enter после выделения запускает
+          # команду, как в Rhino, без ещё одного «Press Enter to run».
+          @run.confirm = false if @run.sub.nil? && @run.ask.size == 1
           accept
         end
 
@@ -621,10 +700,20 @@ module BACommunity
         def bind(cmd, tokens)
           raw = {}
           positional = []
+          preset = nil
           tokens.each do |tok|
-            if (m = tok.match(/\A([A-Za-z][A-Za-z0-9]*)=(.*)\z/m))
-              param = cmd.params.find { |p| p.name.casecmp?(m[1]) }
-              return [nil, "#{cmd.id}: unknown parameter #{m[1]}"] unless param
+            if (m = tok.match(/\A([A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё0-9]*)=(.*)\z/m))
+              key = Layout.cyrillic?(m[1]) ? Layout.to_en(m[1]) : m[1]
+              param = cmd.params.find { |p| p.name.casecmp?(key) }
+              if param.nil? && key.casecmp?(PRESET)
+                preset = m[2]
+                next
+              end
+              unless param
+                near = Fuzzy.closest(key, cmd.params.map(&:name))
+                hint = near.any? ? " Did you mean #{near.join(', ')}?" : " Parameters: #{cmd.params.map(&:name).join(', ')}"
+                return [nil, "#{cmd.id}: unknown parameter #{m[1]}.#{hint}"]
+              end
 
               raw[param] = m[2]
             else
@@ -643,6 +732,12 @@ module BACommunity
           # parse: видит и значения, которые подставятся без вопроса (Plane=XZ
           # с прошлого раза).
           args = {}
+          if preset
+            values, err = Library.preset_values(cmd, preset)
+            return [nil, err] if err
+
+            args.merge!(values.reject { |k, _| raw.keys.any? { |p| p.key == k } })
+          end
           known = cmd.params.to_h { |p| [p.key, p.selection? ? nil : last_value(cmd, p)] }
           cmd.params.partition { |p| p.base.nil? }.flatten.each do |param|
             next unless raw.key?(param)
@@ -684,6 +779,51 @@ module BACommunity
 
           chain.last << tok if tok
           [chain.reject(&:empty?), nil]
+        end
+
+        # ---------- результат как выделение, пресеты ----------
+
+        # Созданное командой (или то, что она вернула в created:) выделяется,
+        # если в цепочке есть ещё команды: «Rectangle 0,0 1000,500; PushPull 300».
+        # SelectLast выделяет его и потом.
+        def pass_on(res, added)
+          created = res.is_a?(Hash) ? (res[:created] || res['created']) : nil
+          created = Array(created || added).uniq
+          created = created.select { |e| e.respond_to?(:valid?) && e.valid? && e.is_a?(Sketchup::Drawingelement) }
+          return if created.empty?
+
+          @last_created = created
+          return if @queue.empty?
+
+          sel = Sketchup.active_model.selection
+          sel.clear
+          sel.add(created)
+        end
+
+        public
+
+        # Созданное последней командой, ещё живое (SelectLast).
+        def last_created
+          Array(@last_created).select(&:valid?)
+        end
+
+        private
+
+        # Вопрос «Preset»: имя пресета из списка.
+        def preset_param
+          Param.new(key: PRESET_KEY, name: PRESET, label: 'Preset name', type: :string,
+                    suggest: Library.presets(@run.cmd.id).keys)
+        end
+
+        def apply_preset_answer(text)
+          values, err = Library.preset_values(@run.cmd, text.strip)
+          return emit(:error, err) if err
+
+          @run.args.merge!(values)
+          emit(:echo, "#{PRESET}=#{text.strip}")
+          @run.sub = nil if @run.sub&.key == PRESET_KEY
+          Window.sync
+          Picker.follow(current_param, @run)
         end
 
         def remember(text)

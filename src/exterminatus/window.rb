@@ -29,6 +29,14 @@ module BACommunity
           end
         end
 
+        # Команду запустили из меню или кнопкой: если она ждёт ответа с
+        # клавиатуры, открыть строку у курсора. Точки и выделение берутся
+        # кликом в модели — окно им не нужно (ввод — в поле Measurements).
+        def after_invoke
+          sync
+          open_popup if Session.wants_typing? && !visible?(:bar) && !visible?(:popup)
+        end
+
         def toggle_bar
           visible?(:bar) ? close(:bar) : open_bar
         end
