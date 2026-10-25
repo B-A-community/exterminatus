@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "generated": "2026-10-25T18:37:14Z",
+  "generated": "2026-10-25T19:20:32Z",
   "plugins": [
     {
       "id": "ralncs",
@@ -164,6 +164,20 @@
       "folder": "exterminatus",
       "description": "Command line, plugin updates",
       "releases": [
+        {
+          "version": "0.3.2",
+          "tag": "v0.3.2",
+          "date": "2026-10-25",
+          "notes": "## Exterminatus 0.3.2\n\nИсправление к 0.3.1, ставить обязательно.\n\n- Исправлено: после обновления плагина из окна Plugin Updates Exterminatus при следующем запуске SketchUp не загружался («Some Extensions Failed to Load», SyntaxError).\n- История команд снова сохраняется между запусками SketchUp.\n- История и отметки обновлений теперь хранятся в файлах в `%APPDATA%\\BACommunity\\Exterminatus`; старые испорченные значения из настроек SketchUp удаляются сами.\n- Сбой проверки обновлений больше не мешает терминалу загрузиться.\n\nПолный список изменений — [CHANGELOG.md](https://github.com/B-A-community/exterminatus/blob/main/CHANGELOG.md).\n\n**Установка:** SketchUp → Window → Extension Manager → Install Extension → `exterminatus-0.3.2.rbz` → перезапустить SketchUp. Дальше Exterminatus обновляется сам из окна Plugin Updates.",
+          "assets": {
+            "any": {
+              "name": "exterminatus-0.3.2.rbz",
+              "url": "https://github.com/B-A-community/exterminatus/releases/download/v0.3.2/exterminatus-0.3.2.rbz",
+              "size": 98816,
+              "sha256": "df28871c9ea5c812de0bdc16673c7d2db5bb75911814e0ade3024c9fab728f0c"
+            }
+          }
+        },
         {
           "version": "0.3.1",
           "tag": "v0.3.1",
