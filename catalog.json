@@ -1,0 +1,184 @@
+{
+  "format": 1,
+  "generated": "2026-10-25T18:37:14Z",
+  "plugins": [
+    {
+      "id": "ralncs",
+      "name": "RAL/NCS",
+      "repo": "B-A-community/ralncs",
+      "extension": "RALNCS",
+      "folder": "ralncs",
+      "description": "RAL and NCS palettes, material audit",
+      "releases": [
+        {
+          "version": "1.0",
+          "tag": "v1.0",
+          "date": "2026-09-21",
+          "notes": "## RALNCS 1.0 — первый релиз / first release\n\n**Плагин SketchUp 2024:** веер RAL Classic (216) и NCS 1950 (1950 цветов), подбор ближайших RAL/NCS для всех материалов модели по CIEDE2000, ТЗ в буфер обмена для Google Таблиц / Excel (с заливкой ячеек), перекраска материалов в точные цвета палитры.\n\n**SketchUp 2024 extension:** RAL Classic (216) and NCS 1950 (1950 colors) fan, nearest RAL/NCS for every model material via CIEDE2000, color spec copied to the clipboard for Google Sheets / Excel (with cell fills), recoloring materials to exact palette colors.\n\n### Скачать / Download\n\n| Русский интерфейс / Russian UI | Английский интерфейс / English UI |\n|---|---|\n| `RALNCS-1.0-rus.zip` | `RALNCS-1.0-eng.zip` |\n\nВ архиве — плагин `.rbz` и краткая инструкция (PDF). / Each archive contains the `.rbz` extension and a one-page PDF guide.\n\n**Установка:** SketchUp → Window → Extension Manager → Install Extension → выбрать `.rbz` → перезапустить SketchUp.\n**Install:** SketchUp → Window → Extension Manager → Install Extension → pick the `.rbz` → restart SketchUp.\n\nОбе версии собраны из одного исходника и отличаются только языком интерфейса. / Both builds come from the same source and differ only in UI language.\n\n### Известное ограничение / Known limitation\n\nПри загруженном Enscape 4.1 откат (Ctrl+Z) тонирования текстур может закрыть SketchUp — ошибка Enscape; перед массовым тонированием сохраните модель.\nWith Enscape 4.1 loaded, undoing (Ctrl+Z) a texture tint may close SketchUp — an Enscape bug; save the model before bulk tinting.\n\nАвторы / Authors: Ruslan Tkachenko, Maksar Sanjeev · Apache 2.0 · B&A community",
+          "assets": {
+            "en": {
+              "name": "RALNCS-1.0-eng.zip",
+              "url": "https://github.com/B-A-community/ralncs/releases/download/v1.0/RALNCS-1.0-eng.zip",
+              "size": 122060,
+              "sha256": "f422ccf29932bd211428265ac275911af07add7b3fb761aef0a3524192875f99"
+            },
+            "ru": {
+              "name": "RALNCS-1.0-rus.zip",
+              "url": "https://github.com/B-A-community/ralncs/releases/download/v1.0/RALNCS-1.0-rus.zip",
+              "size": 128784,
+              "sha256": "bde402443ec37475cdf2a583377cb854f71d62e7940153f2410a487a58cdc93c"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "area-counter",
+      "name": "Area counter",
+      "repo": "B-A-community/area-counter",
+      "extension": "area counter",
+      "folder": "area_counter",
+      "description": "Areas of rooms and faces",
+      "releases": [
+        {
+          "version": "1.1",
+          "tag": "v1.1",
+          "date": "2026-10-18",
+          "notes": "## area counter 1.1 — упрощение / simplification\n\nКаждый плагин решает одну задачу, интерфейс понятен без инструкции. / Each extension does one job; the window is clear without a guide.\n\n- **Вывод сечений убран** — кнопка «Вывод сечений» и команда «Сечение этажа…»; функция переезжает в отдельный плагин. Сечения, выгруженные 1.0, по-прежнему не считаются этажами. / **Section output removed** (moves to a separate extension); sections output by 1.0 are still never counted as floors.\n- **Инструкция из окна убрана** — вместо неё подсказки при наведении. / **In-window guide removed** — hover hints instead.\n- **«Свернуть всё» → шеврон в шапке «Объект»**; после каждого расчёта дерево свёрнуто. / **“Collapse all” → chevron in the Object header**; the tree arrives collapsed after every calculation.\n- **Окно проще**: шапка в одну строку, из параметров сечения — только отметка от низа этажа; зазоры 20 мм, сварка 1 мм, скрытое пропускается, дворы не вычитаются — по умолчанию. / **Simpler window**: one row of buttons, only the cut height in the settings; other section parameters use the defaults.\n\n### Скачать / Download\n\n| Русский интерфейс / Russian UI | Английский интерфейс / English UI |\n|---|---|\n| `area-counter-1.1-rus.zip` | `area-counter-1.1-eng.zip` |\n\nВ архиве — плагин `.rbz` и краткая инструкция (PDF). / Each archive contains the `.rbz` extension and a one-page PDF guide.\n\n**Установка:** удалите прежнюю версию → SketchUp → Window → Extension Manager → Install Extension → выбрать `.rbz` → перезапустить SketchUp.\n**Install:** remove the previous version → SketchUp → Window → Extension Manager → Install Extension → pick the `.rbz` → restart SketchUp.\n\nПроверено в SketchUp 24.0.484, самопроверка 41/41 в обеих сборках. / Tested in SketchUp 24.0.484, self-test 41/41 in both builds.\n\nАвторы / Authors: Ruslan Tkachenko, Maksar Sanjeev · Apache 2.0 · B&A community",
+          "assets": {
+            "en": {
+              "name": "area-counter-1.1-eng.zip",
+              "url": "https://github.com/B-A-community/area-counter/releases/download/v1.1/area-counter-1.1-eng.zip",
+              "size": 131634,
+              "sha256": "ddde81e87724213051b0dc0b43e5ec281dc2fa49b34942342aca164e6afa1960"
+            },
+            "ru": {
+              "name": "area-counter-1.1-rus.zip",
+              "url": "https://github.com/B-A-community/area-counter/releases/download/v1.1/area-counter-1.1-rus.zip",
+              "size": 140345,
+              "sha256": "1c74edcb2de9d29ab3da866629c6b9256ff54ca58a68292dff21e3873dc07097"
+            }
+          }
+        },
+        {
+          "version": "1.0",
+          "tag": "v1.0",
+          "date": "2026-09-27",
+          "notes": "## area counter 1.0 — первый релиз / first release\n\n**Плагин SketchUp 2024 / 2025 / 2026:** площади этажей, корпусов и комплексов по верхней грани или по чистому горизонтальному сечению (внешний контур с пластикой и окнами), таблица в буфер обмена для Google Таблиц / Excel, плоские грани сечений в модели с площадью в Entity Info.\n\n**SketchUp 2024 / 2025 / 2026 extension:** floor, building and complex areas by top face or by a clean horizontal section (outer contour including facade relief and windows), a table copied to the clipboard for Google Sheets / Excel, flat section faces in the model with the area in Entity Info.\n\n### Скачать / Download\n\n| Русский интерфейс / Russian UI | Английский интерфейс / English UI |\n|---|---|\n| `area-counter-1.0-rus.zip` | `area-counter-1.0-eng.zip` |\n\nВ архиве — плагин `.rbz` и краткая инструкция (PDF). / Each archive contains the `.rbz` extension and a one-page PDF guide.\n\n**Установка:** SketchUp → Window → Extension Manager → Install Extension → выбрать `.rbz` → перезапустить SketchUp. Прежнюю тестовую сборку сначала удалите.\n**Install:** SketchUp → Window → Extension Manager → Install Extension → pick the `.rbz` → restart SketchUp. Remove any earlier test build first.\n\nОбе версии собраны из одного исходника и отличаются только языком интерфейса. / Both builds come from the same source and differ only in UI language.\n\nПроверено в SketchUp 24.0.484, 25.0.660 и 26.1.256, самопроверка 49/49 в обеих сборках. / Tested in SketchUp 24.0.484, 25.0.660 and 26.1.256, self-test 49/49 in both builds.\n\nАвторы / Authors: Ruslan Tkachenko, Maksar Sanjeev · Apache 2.0 · B&A community",
+          "assets": {
+            "en": {
+              "name": "area-counter-1.0-eng.zip",
+              "url": "https://github.com/B-A-community/area-counter/releases/download/v1.0/area-counter-1.0-eng.zip",
+              "size": 140416,
+              "sha256": "dec7fe05304cbcfe7fdbf096167f17e3d22e51003d42476d88b2c9fcb74cb037"
+            },
+            "ru": {
+              "name": "area-counter-1.0-rus.zip",
+              "url": "https://github.com/B-A-community/area-counter/releases/download/v1.0/area-counter-1.0-rus.zip",
+              "size": 149894,
+              "sha256": "62736ea78618907f2f0fb08d1c9646d84fa8de767f455bd519e899dc4904aef9"
+            }
+          }
+        },
+        {
+          "version": "0.2",
+          "tag": "v0.2",
+          "date": "2026-08-09",
+          "notes": "﻿Первая публичная сборка.\n\n**Что внутри**\n- Панель инструментов **area counter** из 5 кнопок.\n- Работает первая кнопка — «Площадь верхних граней»: суммирует площадь верхних горизонтальных граней всех выделенных групп и компонентов и показывает результат в квадратных метрах.\n- Кнопки 2–5 (объём, длины и периметр, спецификация, экспорт) — заглушки, зарезервированы под следующие инструменты.\n\n**Установка**\nSketchUp 2024 → Расширения → Менеджер расширений → Установить расширение → `area_counter.rbz`.\n\nЛицензия: Apache 2.0.",
+          "assets": {
+            "any": {
+              "name": "area_counter.rbz",
+              "url": "https://github.com/B-A-community/area-counter/releases/download/v0.2/area_counter.rbz",
+              "size": 15128,
+              "sha256": "c85f1dcad4ec8f3d3dc17483ebacf4f0bd6467223de965d042f58655849ae173"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "monsieur-bezier",
+      "name": "Monsieur Bézier",
+      "repo": "B-A-community/monsieur-bezier",
+      "extension": "Monsieur Bézier",
+      "folder": "monsieur_bezier",
+      "description": "Bezier curves",
+      "releases": [
+        {
+          "version": "1.0",
+          "tag": "v1.0",
+          "date": "2026-09-27",
+          "notes": "## Monsieur Bézier 1.0 — первый релиз / first release\r\n\r\n**Плагин SketchUp 2024 / 2025 / 2026:** перо для кривых Безье, как в векторных редакторах. Клик — угловой узел, клик с протяжкой — гладкий с зеркальными ручками, клик по первому узлу замыкает кривую. Каждый пролёт между узлами — отдельная кривая: выделяется одним кликом, вся цепочка — тройным, для Follow Me — один непрерывный путь.\r\n\r\n**SketchUp 2024 / 2025 / 2026 extension:** a Bézier pen, just like in vector editors. Click for a corner node, click and drag for a smooth node with mirrored handles, click the first node to close the curve. Every span between nodes is a separate curve: one click selects a span, a triple click selects the whole chain, and Follow Me sees one continuous path.\r\n\r\n### Скачать / Download\r\n\r\n| Русский интерфейс / Russian UI | Английский интерфейс / English UI |\r\n|---|---|\r\n| `monsieur_bezier-1.0-rus.zip` | `monsieur_bezier-1.0-eng.zip` |\r\n\r\nВ архиве — плагин `.rbz` и краткая инструкция (PDF). / Each archive contains the `.rbz` extension and a one-page PDF guide.\r\n\r\n**Установка:** SketchUp → Window → Extension Manager → Install Extension → выбрать `.rbz` → перезапустить SketchUp.\r\n**Install:** SketchUp → Window → Extension Manager → Install Extension → pick the `.rbz` → restart SketchUp.\r\n\r\nОбе версии собраны из одного исходника и отличаются только языком интерфейса. / Both builds come from the same source and differ only in UI language.\r\n\r\n### Управление / Controls\r\n\r\n| | |\r\n|---|---|\r\n| Enter или двойной клик / Enter or double-click | закончить / finish |\r\n| Esc | шаг назад — убрать последний узел / step back — remove the last node |\r\n| число + Enter / number + Enter | сегментов на пролёт, 1–200 / segments per span, 1–200 |\r\n\r\nШаг назад — Esc, а не Backspace: Backspace и Enter нужны полю ввода. / Step back is Esc, not Backspace: Backspace and Enter belong to the input box.\r\n\r\nАвторы / Authors: Ruslan Tkachenko, Maksar Sanjeev · Apache 2.0 · B&A community\r\n\r\n### Исправления и проверка ",
+          "assets": {
+            "en": {
+              "name": "monsieur_bezier-1.0-eng.zip",
+              "url": "https://github.com/B-A-community/monsieur-bezier/releases/download/v1.0/monsieur_bezier-1.0-eng.zip",
+              "size": 78508,
+              "sha256": "1a64ba792a9a5df0c97e04324c317738310260430f8f3f8e07b26fab9eb4e31b"
+            },
+            "ru": {
+              "name": "monsieur_bezier-1.0-rus.zip",
+              "url": "https://github.com/B-A-community/monsieur-bezier/releases/download/v1.0/monsieur_bezier-1.0-rus.zip",
+              "size": 85118,
+              "sha256": "749a2f03405ce19653eb7d72ecc2349762904d65638d08b31465d1f874d7675b"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "pathcopy-advanced",
+      "name": "PathCopy Advanced",
+      "repo": "B-A-community/pathcopy-advanced",
+      "extension": "PathCopy Advanced",
+      "folder": "pathcopy_advanced",
+      "description": "Copy objects along a path",
+      "releases": [
+        {
+          "version": "1.0.0",
+          "tag": "v1.0",
+          "date": "2026-10-18",
+          "notes": "## PathCopy Advanced 1.0 — первый релиз / first release\n\n**Плагин SketchUp 2024 / 2025:** копирует группы и компоненты вдоль пути и протягивает по нему профиль-поручень. Замена PathCopy от Smustard, который не обновлялся с 2014 года.\n\n**SketchUp 2024 / 2025 extension:** copies groups and components along a path and sweeps a railing profile along it. A replacement for Smustard's PathCopy, untouched since 2014.\n\n### Скачать / Download\n\n| | Архив / Archive | Внутри / Inside |\n|---|---|---|\n| 🇷🇺 Русский | `pathcopy-advanced-1.0.0-rus.zip` | плагин `.rbz` + PDF-инструкция на одну страницу |\n| 🇬🇧 English | `pathcopy-advanced-1.0.0-eng.zip` | `.rbz` plugin + one-page PDF guide |\n\nРаспакуйте архив. Установка: **Расширения → Менеджер расширений → Установить расширение**, затем перезапустить SketchUp. Сборка не подписана — в настройках менеджера политика загрузки должна быть «Неограниченная».\n\nUnzip the archive. Install: **Extensions → Extension Manager → Install Extension**, then restart SketchUp. The build is unsigned — set the loading policy in the manager's settings to \"Unrestricted\".\n\n### Что умеет\n\n- **Путь без сварки.** Цепочка несваренных рёбер обходится сама; контур грани, дуга, окружность, несколько путей за раз (`Ctrl`+клик).\n- **Пять режимов расстановки:** шаг, количество, подгонка шага, **подгонка по сегментам** (копия в каждой вершине — для ограждений), по вершинам.\n- **Ориентация:** в плане, в 3D по уклону, по плоскости пути, без поворота. В углу копия стоит по рельсу, а не по биссектрисе. На замкнутом контуре — наружу или внутрь, как бы контур ни был нарисован. Кнопки «Вдоль» / «Поперёк».\n- **Поручень:** прямоугольный или круглый профиль, привязка по центру / наружу / внутрь, подъём над путём, продление концов. Углы режутся митрой — поворот одной деталью.\n- **Доводка руками:** клик по копии доворачивает её, `Shift`+клик — обратно; доворот переживает перестройку.\n- **Разброс** поворота, масштаба и смещения по зерну.\n- Копии наследуют материал, тег и масштаб ист",
+          "assets": {
+            "en": {
+              "name": "pathcopy-advanced-1.0.0-eng.zip",
+              "url": "https://github.com/B-A-community/pathcopy-advanced/releases/download/v1.0/pathcopy-advanced-1.0.0-eng.zip",
+              "size": 138122,
+              "sha256": "91234b892825692b4fcb81c12b27682cdc31274f7380af34b2de1f2a1ead71a5"
+            },
+            "ru": {
+              "name": "pathcopy-advanced-1.0.0-rus.zip",
+              "url": "https://github.com/B-A-community/pathcopy-advanced/releases/download/v1.0/pathcopy-advanced-1.0.0-rus.zip",
+              "size": 149666,
+              "sha256": "5ff114f9ebfb9544d5d17b8f96f49f85a3f1a92909bf945b182620a3bf0aa4f2"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "exterminatus",
+      "name": "Exterminatus",
+      "repo": "B-A-community/exterminatus",
+      "extension": "Exterminatus",
+      "folder": "exterminatus",
+      "description": "Command line, plugin updates",
+      "releases": [
+        {
+          "version": "0.3.1",
+          "tag": "v0.3.1",
+          "date": "2026-10-25",
+          "notes": "## Exterminatus 0.3.1\n\nКомандная строка в духе Rhino для SketchUp 2024: команды SketchUp и наших плагинов по имени, параметры — в строке, точки — кликом или вводом.\n\n- Булавка в строке терминала: закреплённая строка не закрывается после команды, стоит там, куда её перетащили, и сворачивается вместе с окном SketchUp.\n- Пробел — как Enter, как в Rhino; Shift+пробел — обычный пробел для аргументов в строке.\n- Установка и обновление наших плагинов: Extensions → Exterminatus → Plugin Updates…\n- Исправлено зависание при рисовании Line.\n\nПолный список изменений — [CHANGELOG.md](https://github.com/B-A-community/exterminatus/blob/main/CHANGELOG.md).\n\n**Установка:** SketchUp → Window → Extension Manager → Install Extension → `exterminatus-0.3.1.rbz` → перезапустить SketchUp. Дальше Exterminatus обновляется сам из окна Plugin Updates.",
+          "assets": {
+            "any": {
+              "name": "exterminatus-0.3.1.rbz",
+              "url": "https://github.com/B-A-community/exterminatus/releases/download/v0.3.1/exterminatus-0.3.1.rbz",
+              "size": 98141,
+              "sha256": "255355b8d31683c49d91ae7526cc51b0aea3c6826df5179a80cfeb84d5a829d1"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
