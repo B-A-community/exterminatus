@@ -27,19 +27,6 @@ module BACommunity
       # interactive — команда набрана без аргументов (только тогда она повторяется).
       Run = Struct.new(:cmd, :args, :ask, :sub, :confirm, :repeat, :interactive)
 
-      # Что команда добавила в текущий контекст: без обхода всей модели.
-      class Collector < Sketchup::EntitiesObserver
-        attr_reader :items
-
-        def initialize
-          super
-          @items = []
-        end
-
-        def onElementAdded(_entities, entity)
-          @items << entity
-        end
-      end
       # Пресет: «PathCopy preset=Забор» или опция Preset в строке приглашения.
       PRESET = 'Preset'
       PRESET_KEY = :_preset
@@ -458,20 +445,22 @@ module BACommunity
         def execute
           run = @run
           @run = nil
-          Picker.stop
+          # Повторяемая команда (Line) продолжит с тем же инструментом: не
+          # пересоздавать его на каждом отрезке. SketchUp на каждый новый
+          # инструмент заново опрашивает его методы, а частая смена инструмента
+          # в живой работе доводила Ruby до зависания.
+          repeating = run.cmd.repeat && run.interactive
+          Picker.stop unless repeating
           run.cmd.params.each { |p| @last_values[run.cmd.id][p.key] = run.args[p.key] if p.remember? }
           args = resolved(run)
-          added = Collector.new
           ents = Sketchup.active_model.active_entities
-          ents.add_observer(added)
-          begin
-            res = invoke(run.cmd, args)
-          ensure
-            ents.remove_observer(added)
-          end
+          before = ents.size
+          res = invoke(run.cmd, args)
           report(run.cmd, res)
-          pass_on(res, added.items)
-          return restart(run, args) if run.cmd.repeat && run.interactive && succeeded?(res)
+          pass_on(res, ents, before)
+          return restart(run, args) if repeating && succeeded?(res)
+
+          Picker.stop if repeating
 
           # send_action SketchUp выполняет позже, в своём цикле сообщений:
           # остаток цепочки ждёт, иначе «Hide; SelectNone» снимет выделение
@@ -786,9 +775,15 @@ module BACommunity
         # Созданное командой (или то, что она вернула в created:) выделяется,
         # если в цепочке есть ещё команды: «Rectangle 0,0 1000,500; PushPull 300».
         # SelectLast выделяет его и потом.
-        def pass_on(res, added)
+        # Новое SketchUp добавляет в конец коллекции: созданное — хвост после
+        # прежнего размера. Без наблюдателей и без обхода всей модели.
+        def pass_on(res, ents, before)
           created = res.is_a?(Hash) ? (res[:created] || res['created']) : nil
-          created = Array(created || added).uniq
+          unless created
+            after = (ents.size rescue 0)
+            created = after > before ? (before...after).map { |i| ents[i] } : []
+          end
+          created = Array(created).compact.uniq
           created = created.select { |e| e.respond_to?(:valid?) && e.valid? && e.is_a?(Sketchup::Drawingelement) }
           return if created.empty?
 
