@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plugin Updates</title>
+  <link rel="stylesheet" href="updates.css">
+</head>
+<body>
+  <header class="bar">
+    <div class="bar__title">
+      <h1>B&amp;A plugins</h1>
+      <span id="checked" class="muted" aria-live="polite"></span>
+    </div>
+    <div class="bar__actions">
+      <div class="lang" role="radiogroup" aria-label="Language for new installs" title="Language of plugins you install">
+        <button type="button" data-lang="ru" role="radio">RU</button>
+        <button type="button" data-lang="en" role="radio">EN</button>
+      </div>
+      <button type="button" id="refresh">Check now</button>
+      <button type="button" id="all" class="primary">Update all</button>
+    </div>
+  </header>
+
+  <div id="error" class="notice notice--error is-hidden" role="alert"></div>
+
+  <main id="list" aria-label="Plugins" aria-busy="true">
+    <p class="empty muted">Checking for updates…</p>
+  </main>
+
+  <footer id="restart" class="notice notice--restart is-hidden" role="status">
+    <span>Updates are installed. Restart SketchUp to load them.</span>
+    <button type="button" id="restart-now" class="primary">Restart SketchUp</button>
+  </footer>
+
+  <script src="updates.js"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+# Каталог наших плагинов для обновлений из Exterminatus.
+# Раз в час (и по кнопке, и по сигналу из релиза плагина) читает релизы
+# репозиториев из src/exterminatus/plugins.json и кладёт catalog.json в ветку
+# catalog. Exterminatus читает его по адресу
+# https://raw.githubusercontent.com/B-A-community/exterminatus/catalog/catalog.json
+name: catalog
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [plugin-released]
+  push:
+    branches: [main]
+    paths: ['src/exterminatus/plugins.json', 'src/exterminatus/catalog.rb', 'tools/build_catalog.rb']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: catalog
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Build catalog.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ruby tools/build_catalog.rb "$RUNNER_TEMP/catalog.json"
+
+      - name: Publish to the catalog branch
+        run: |
+          cd "$RUNNER_TEMP"
+          git init -q site && cd site
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          if git fetch -q origin catalog; then git checkout -q -b catalog origin/catalog; else git checkout -q --orphan catalog; fi
+          # Время сборки меняется всегда — сравниваем без него.
+          new=$(grep -v '"generated"' ../catalog.json)
+          old=$( [ -f catalog.json ] && grep -v '"generated"' catalog.json || true )
+          if [ "$new" = "$old" ]; then echo 'catalog unchanged'; exit 0; fi
+          cp ../catalog.json catalog.json
+          git add catalog.json
+          git commit -q -m "catalog: $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q origin catalog

@@ -70,6 +70,7 @@ module BACommunity
           end
 
           register_library
+          register_updates
           own('PluginCheck', %w[], 'Check how plugins are connected to the terminal (for plugin authors)',
               [{ key: :plugin, type: :string, default: '', prompt: false }]) do |args|
             Check.report(args[:plugin].to_s)
@@ -140,6 +141,91 @@ module BACommunity
 
             msg, err = Library.import(file)
             err ? { ok: false, message: err } : msg
+          end
+        end
+
+        # ---------- обновления плагинов ----------
+
+        def register_updates
+          own('PluginUpdates', %w[Updates], 'Open the window to install and update our plugins') do
+            UI.start_timer(0, false) { UpdatesWindow.show }
+            nil
+          end
+
+          own('Plugins', %w[], 'Our plugins: installed version and updates') do
+            with_catalog do
+              rows = Updater.rows
+              lines = rows.map do |r|
+                state = { 'update' => "update #{r[:latest]}", 'current' => 'up to date', 'missing' => "not installed (#{r[:latest]})",
+                          'newer' => "newer than release #{r[:latest]}", 'restart' => "#{r[:pending]} after restart",
+                          'unpublished' => 'no releases', 'busy' => r[:message], 'error' => "error: #{r[:message]}",
+                'nolang' => "#{r[:latest]} has no #{r[:lang].to_s.upcase} build" }[r[:status]]
+                "#{r[:name]}: #{r[:installed] || '—'} — #{state}"
+              end
+              Session.emit(:result, lines.join("
+"))
+              Session.emit(:info, "#{Updater.updates.size} updates: PluginUpdate installs them") if Updater.updates.any?
+            end
+            'Checking GitHub…'
+          end
+
+          own('PluginUpdate', %w[], 'Update our plugins: all, or one by name (PluginUpdate pathcopy)',
+              [{ key: :name, type: :string, default: '', prompt: false, suggest: -> { Catalog.plugins.map { |p| p['id'] } } }]) do |args|
+            name = args[:name].to_s.strip
+            with_catalog do
+              if name.empty?
+                n = Updater.update_all
+                Session.emit(:info, n.zero? ? 'All our plugins are up to date' : "Updating #{n} plugins…")
+              else
+                msg = Updater.install(name)
+                Session.emit(msg ? :error : :info, msg || "Updating #{name}…")
+              end
+            end
+            'Checking GitHub…'
+          end
+
+          own('PluginInstall', %w[], 'Install one of our plugins: PluginInstall ralncs lang=en',
+              [{ key: :name, type: :string, label: 'Plugin', suggest: -> { Catalog.plugins.map { |p| p['id'] } } },
+               { key: :lang, type: :option, values: %w[Auto RU EN], default: 'Auto', prompt: false }]) do |args|
+            lang = args[:lang] == 'Auto' ? nil : args[:lang].downcase
+            with_catalog do
+              msg = Updater.install(args[:name], lang: lang)
+              Session.emit(msg ? :error : :info, msg || "Installing #{args[:name]}…")
+            end
+            'Checking GitHub…'
+          end
+
+          own('PluginRollback', %w[], 'Go back to the previous release of a plugin',
+              [{ key: :name, type: :string, label: 'Plugin', suggest: -> { Catalog.plugins.map { |p| p['id'] } } }]) do |args|
+            with_catalog do
+              plugin = Updater.find(args[:name])
+              prev = plugin && Updater.previous_release(plugin)
+              if prev
+                msg = Updater.install(plugin['id'], version: prev['version'])
+                Session.emit(msg ? :error : :info, msg || "Installing #{plugin['name']} #{prev['version']}…")
+              else
+                Session.emit(:error, plugin ? "#{plugin['name']}: no earlier release" : "unknown plugin #{args[:name]}")
+              end
+            end
+            'Checking GitHub…'
+          end
+
+          own('RestartSketchUp', %w[], 'Restart SketchUp (to load updated plugins)') do
+            next({ ok: false, message: 'wait until the plugins finish installing' }) if Updater.busy?
+
+            UI.start_timer(0, false) { Updater.restart }
+            nil
+          end
+        end
+
+        # Свежий каталог, потом блок; ошибка — в вывод терминала.
+        def with_catalog(&block)
+          Updater.refresh do
+            if Updater.error && !Updater.catalog
+              Session.emit(:error, Updater.error)
+            else
+              block.call
+            end
           end
         end
 

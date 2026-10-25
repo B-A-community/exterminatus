@@ -124,7 +124,13 @@ module BACommunity
         'Macros' => 'макросы',
         'PresetSave' => 'пресет сохранить',
         'Presets' => 'пресеты',
-        'PluginCheck' => 'проверка плагинов'
+        'PluginCheck' => 'проверка плагинов',
+        'PluginUpdates' => 'обновления обновить плагины',
+        'Plugins' => 'плагины',
+        'PluginUpdate' => 'обновить плагин',
+        'PluginInstall' => 'установить плагин',
+        'PluginRollback' => 'откатить плагин',
+        'RestartSketchUp' => 'перезапуск перезапустить'
       }.freeze
     end
   end

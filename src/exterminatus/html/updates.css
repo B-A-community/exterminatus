@@ -1,0 +1,267 @@
+:root {
+  color-scheme: light;
+
+  --font-ui: "Segoe UI", system-ui, sans-serif;
+  --font-size: 12px;
+  --line-height: 18px;
+  --weight-strong: 600;
+
+  --panel: #f0f0f0;
+  --field: #ffffff;
+  --text: #262626;
+  --muted: #666666;
+  --border: #b8b8b8;
+  --divider: #d3d3d3;
+  --hover: #e5e5e5;
+  --focus: #606060;
+  --accent: #0067c0;
+  --accent-hover: #005aa8;
+  --accent-text: #ffffff;
+  --error: #873b35;
+  --error-bg: #f6e7e5;
+  --ok: #2f6b3a;
+  --restart-bg: #e3eef8;
+
+  --radius: 2px;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --row-pad: 10px;
+  --button-height: 24px;
+  --action-width: 116px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  background: var(--panel);
+  color: var(--text);
+  font: var(--font-size) / var(--line-height) var(--font-ui);
+}
+
+h1 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: var(--weight-strong);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+button {
+  height: var(--button-height);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+button:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+button:focus-visible {
+  outline: 1px dotted var(--focus);
+  outline-offset: 1px;
+}
+
+button:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+button.primary:disabled {
+  border-color: var(--border);
+  background: var(--field);
+  color: var(--muted);
+}
+
+/* ---------- шапка ---------- */
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--divider);
+}
+
+.bar__title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+
+.bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.lang {
+  display: inline-flex;
+  margin-right: var(--space-3);
+}
+
+.lang button {
+  border-radius: 0;
+  padding: 0 var(--space-3);
+}
+
+.lang button + button {
+  border-left: 0;
+}
+
+.lang button:first-child {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.lang button:last-child {
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.lang button[aria-checked="true"] {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--field);
+}
+
+/* ---------- список ---------- */
+
+main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 var(--space-5);
+}
+
+.empty {
+  padding: var(--space-5) 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto var(--action-width);
+  align-items: center;
+  column-gap: var(--space-5);
+  padding: var(--row-pad) 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.row__name {
+  font-weight: var(--weight-strong);
+}
+
+.row__desc {
+  color: var(--muted);
+}
+
+.row__links {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.link {
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+}
+
+.link:hover:not(:disabled) {
+  background: none;
+  text-decoration: underline;
+}
+
+.row__versions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.row__versions .new {
+  color: var(--ok);
+  font-weight: var(--weight-strong);
+}
+
+.row__action {
+  justify-self: stretch;
+}
+
+.row__action button {
+  width: 100%;
+}
+
+.row__message {
+  grid-column: 1 / -1;
+  margin-top: var(--space-2);
+  color: var(--muted);
+}
+
+.row__message--error {
+  color: var(--error);
+}
+
+.row__notes {
+  grid-column: 1 / -1;
+  max-height: 180px;
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3) var(--space-4);
+  overflow-y: auto;
+  border: 1px solid var(--divider);
+  background: var(--field);
+  font: inherit;
+  white-space: pre-wrap;
+}
+
+/* ---------- сообщения ---------- */
+
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+}
+
+.notice--error {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.notice--restart {
+  border-top: 1px solid var(--divider);
+  background: var(--restart-bg);
+}

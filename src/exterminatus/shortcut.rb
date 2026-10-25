@@ -138,6 +138,9 @@ module BACommunity
           exec.call(nil, wide.call('open'), wide.call(file), wide.call(params), nil, 0)
         end
 
+        # Нужны и обновлению плагинов (перезапуск SketchUp).
+        public :exe_path, :run_hidden
+
         def mac_hint
           UI.messagebox('On macOS assign the shortcut in SketchUp → Settings → Shortcuts: ' \
                         "search for \"Terminal\" under Extensions → #{PLUGIN_NAME}.")

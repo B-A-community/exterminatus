@@ -5,7 +5,7 @@
 вызываются по имени, а параметры спрашиваются прямо в строке. Чужие плагины
 терминал не подхватывает.
 
-Версия 0.2.0 · лицензия [Apache 2.0](LICENSE) · © 2026 B&A community
+Версия 0.3.0 · лицензия [Apache 2.0](LICENSE) · © 2026 B&A community
 
 Создатели: maksarsanjeev — см. [AUTHORS](AUTHORS)
 
@@ -162,6 +162,7 @@ Arc строится как у SketchUp: два конца, потом прог�
 | Сцены | SceneAdd, SceneUpdate, SceneDelete, SceneNext, ScenePrevious |
 | Файл | New, Open, Save, Print, RubyConsole, ExtensionManager |
 | Терминал | Help, Commands, History, ClearLog (Cls), CommandBar, SelectLast, Define, Undefine, Macros, PresetSave, PresetDelete, Presets, LibraryExport, LibraryImport, PluginCheck |
+| Плагины | PluginUpdates (Updates), Plugins, PluginUpdate, PluginInstall, PluginRollback, RestartSketchUp |
 
 Где у SketchUp есть действие (`Sketchup.send_action`), команда вызывает его
 и ведёт себя так же, как кнопка. Передать число родному инструменту терминал
@@ -170,6 +171,28 @@ Arc, Polygon, Move, Copy, Rotate, Scale, Offset и PushPull — свои ком�
 духе Rhino, каждая в один шаг отмены. Родные инструменты остаются на своих
 клавишах в окне модели (L, R, C, A, M, Q, S, F, P).
 Остальные команды повторяют пункт меню через Ruby API.
+
+## Установка и обновление наших плагинов
+
+Extensions → Exterminatus → **Plugin Updates…** открывает окно со всеми нашими
+плагинами. У каждого видны установленная версия и язык, последняя версия и
+изменения. Кнопки:
+
+- **Update** — обновить;
+- **Install** — установить; язык выбирается переключателем RU/EN;
+- **Roll back** — вернуть предыдущий релиз;
+- **Update all** — обновить всё сразу.
+
+После обновления кнопка **Restart SketchUp** перезапускает SketchUp, чтобы
+загрузилась новая версия. Раз в сутки Exterminatus сам проверяет обновления и
+пишет о них в терминал.
+
+То же из терминала: `Plugins`, `PluginUpdate [плагин]`, `PluginInstall ralncs`,
+`PluginRollback ralncs`.
+
+Версии берутся из релизов GitHub организации B-A-community. Чужие плагины не
+обновляются, в сами плагины ничего добавлять не нужно. Как выпускать релизы и
+добавлять плагины в список — [docs/RELEASES.md](docs/RELEASES.md).
 
 ## Подключение плагинов
 
@@ -198,7 +221,7 @@ BACommunity::Terminal.command(id: 'RalFan', plugin: 'RALNCS', description: 'Open
 
 ## Установка
 
-Window → Extension Manager → Install Extension → `exterminatus-0.2.0.rbz`.
+Window → Extension Manager → Install Extension → `exterminatus-0.3.0.rbz`.
 Пакет собирается из `src/`: `python build_rbz.py` → `dist/`.
 
 ## Установка для разработки

@@ -1,5 +1,25 @@
 # Журнал изменений
 
+## 0.3.0 — 2026-10-25
+
+- Exterminatus ставит и обновляет наши плагины из релизов GitHub
+  B-A-community. Окно Extensions → Exterminatus → Plugin Updates…:
+  - Update, Install (RU/EN), Roll back и Update all;
+  - перезапуск SketchUp кнопкой.
+
+  Команды Plugins, PluginUpdate, PluginInstall, PluginRollback, PluginUpdates,
+  RestartSketchUp.
+- Файл проверяется по размеру и sha256 от GitHub. Из релизного zip
+  достаётся `.rbz`, ставится штатно, как в Extension Manager. Язык и версия
+  установленного плагина определяются без правок в самих плагинах.
+- Проверка обновлений раз в сутки при запуске, с сообщением в терминале.
+- Каталог `catalog.json` собирает GitHub Actions раз в час. Пока каталога
+  нет, релизы читаются напрямую через GitHub API.
+- В первом списке — плагины, которые уже в работе: RAL/NCS, Area counter,
+  Monsieur Bézier, PathCopy Advanced. Плюс сам Exterminatus, когда его
+  репозиторий появится на GitHub.
+- docs/RELEASES.md — как выпускать релизы и добавлять плагины в список.
+
 ## 0.2.0 — 2026-10-25
 
 Терминал поддерживает только наши плагины и родные команды SketchUp.

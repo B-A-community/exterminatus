@@ -3,7 +3,7 @@
 module BACommunity
   module Terminal
     %w[terminal_bridge params fuzzy registry session picker window library check
-       keywords builtins modify draw native own shortcut api]
+       keywords builtins modify draw native own shortcut catalog updater updates_window api]
       .each { |file| Sketchup.require(File.join(__dir__, file)) }
 
     # Приглашение с tool: true снимается, когда пользователь сменил инструмент.
@@ -49,11 +49,13 @@ module BACommunity
       menu.add_item(terminal)
       menu.add_item(bar)
       menu.add_separator
+      menu.add_item('Plugin Updates…') { UpdatesWindow.show }
       menu.add_item('Assign Shortcut…') { Shortcut.show }
 
       watch(Sketchup.active_model)
       Sketchup.add_observer(AppWatch.new)
       UI.start_timer(2, false) { Shortcut.report_pending }
+      Updater.schedule_check
     end
   end
 end
