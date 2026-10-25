@@ -1,5 +1,5 @@
 {
-  "comment": "Наши плагины, которые Exterminatus ставит и обновляет. Только репозитории B-A-community. extension — имя в Extension Manager, folder — папка плагина в Plugins (там lang.rb с LANG = 'ru' | 'en').",
+  "comment": "Наши плагины находятся сами: публичный репозиторий B-A-community с релизом 1.0+ и плагином SketchUp (.rbz) попадает в список Exterminatus. Этот файл только уточняет. plugins — порядок, имена и описания (extension — имя в Extension Manager, folder — папка в Plugins, там lang.rb). hidden — репозитории, которых в списке не должно быть совсем. retired — выведены из обращения: новые не ставятся, у кого стоит, видят причину. Подробно — docs/RELEASES.md.",
   "plugins": [
     { "id": "ralncs", "name": "RAL/NCS", "repo": "B-A-community/ralncs", "extension": "RALNCS", "folder": "ralncs",
       "description": "RAL and NCS palettes, material audit" },
@@ -11,5 +11,7 @@
       "extension": "PathCopy Advanced", "folder": "pathcopy_advanced", "description": "Copy objects along a path" },
     { "id": "exterminatus", "name": "Exterminatus", "repo": "B-A-community/exterminatus", "extension": "Exterminatus",
       "folder": "exterminatus", "description": "Command line, plugin updates" }
-  ]
+  ],
+  "hidden": [],
+  "retired": []
 }

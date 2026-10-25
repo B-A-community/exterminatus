@@ -30,7 +30,8 @@
     busy: { label: 'Working…', enabled: false },
     error: { label: 'Try again', enabled: true },
     unpublished: { label: 'Not published', enabled: false },
-    nolang: { label: 'No build in your language', enabled: false }
+    nolang: { label: 'No build in your language', enabled: false },
+    retired: { label: 'Retired', enabled: false }
   };
 
   function versions(r) {
@@ -89,6 +90,8 @@
     item.appendChild(wrap);
 
     if (r.status === 'error' && r.message) item.appendChild(el('div', 'row__message row__message--error', r.message));
+    // Выведен из обращения: почему и что делать, обновлений больше не будет.
+    if (r.status === 'retired') item.appendChild(el('div', 'row__message', 'No longer updated' + (r.message ? ': ' + r.message : '') + '. Remove it in Extension Manager when you no longer need it.'));
     if (open[r.id] && r.notes) item.appendChild(el('pre', 'row__notes', r.notes));
     return item;
   }

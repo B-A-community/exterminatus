@@ -3,7 +3,7 @@
 module BACommunity
   module Terminal
     PLUGIN_NAME = 'Exterminatus'
-    VERSION     = '0.3.2'
+    VERSION     = '0.4.0'
 
     # Ключ для Sketchup.read_default / write_default и окон HtmlDialog.
     PREFS_KEY = 'BACommunity_Exterminatus'

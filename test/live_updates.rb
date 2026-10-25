@@ -30,20 +30,52 @@ ok.('release: version from the asset name, languages by suffix',
     rel['version'] == '1.0.0' && rel['assets'].keys.sort == %w[en ru] && rel['assets']['ru']['sha256'] == 'ab', rel)
 
 # Чужое из каталога отбрасывается: другой домен, другой репозиторий, без sha256.
+gh = ->(repo, tag, name) { "https://github.com/#{repo}/releases/download/#{tag}/#{name}" }
 evil = { 'format' => 1, 'plugins' => [
-  { 'id' => 'ralncs', 'repo' => 'evil/ralncs', 'extension' => 'Evil', 'releases' => [
+  # Тот же id, но чужой репозиторий — не наш плагин.
+  { 'id' => 'ralncs', 'repo' => 'evil/ralncs', 'extension' => 'Evil', 'folder' => 'ralncs', 'releases' => [
+    { 'version' => '9.9', 'assets' => { 'ru' => { 'url' => gh.('evil/ralncs', 'v9.9', 'x.zip'), 'sha256' => 'a' * 64 } } }] },
+  # Наш репозиторий: из ассетов остаются только свои, с HTTPS и sha256.
+  { 'id' => 'pathcopy-advanced', 'repo' => 'B-A-community/pathcopy-advanced', 'extension' => 'Evil', 'folder' => 'evil', 'releases' => [
     { 'version' => '9.9', 'assets' => {
-      'ru' => { 'url' => 'https://evil.example/ralncs.rbz', 'sha256' => 'a' * 64 },
-      'en' => { 'url' => 'https://github.com/evil/ralncs/releases/download/v9.9/x.zip', 'sha256' => 'a' * 64 },
-      'any' => { 'url' => 'https://github.com/B-A-community/ralncs/releases/download/v9.9/x.zip', 'sha256' => nil } } },
-    { 'version' => '1.0', 'assets' => {
-      'ru' => { 'url' => 'https://github.com/B-A-community/ralncs/releases/download/v1.0/RALNCS-1.0-rus.zip', 'sha256' => 'b' * 64 } } }] },
-  { 'id' => 'stranger', 'repo' => 'evil/stranger', 'releases' => [] }] }
+      'ru' => { 'url' => 'https://evil.example/x.rbz', 'sha256' => 'a' * 64 },
+      'en' => { 'url' => gh.('B-A-community/ralncs', 'v9.9', 'x.zip'), 'sha256' => 'a' * 64 },
+      'any' => { 'url' => gh.('B-A-community/pathcopy-advanced', 'v9.9', 'x.zip'), 'sha256' => nil } } },
+    { 'version' => '1.1', 'assets' => {
+      'ru' => { 'url' => gh.('B-A-community/pathcopy-advanced', 'v1.1', 'pathcopy-advanced-1.1-rus.zip'), 'sha256' => 'b' * 64 } } }] },
+  # Новый репозиторий организации — найден сам, принимается.
+  { 'id' => 'new-tool', 'repo' => 'B-A-community/new-tool', 'extension' => 'New Tool', 'folder' => 'new_tool', 'discovered' => true,
+    'releases' => [{ 'version' => '1.0', 'assets' => { 'any' => { 'url' => gh.('B-A-community/new-tool', 'v1.0', 'new-tool-1.0.rbz'), 'sha256' => 'c' * 64 } } }] },
+  # Опасная папка — отброшен.
+  { 'id' => 'sneaky', 'repo' => 'B-A-community/sneaky', 'extension' => 'Sneaky', 'folder' => '../Plugins', 'releases' => [] },
+  # Выведены из обращения: установленный виден с причиной, неустановленный скрыт.
+  { 'id' => 'area-counter', 'repo' => 'B-A-community/area-counter', 'extension' => 'area counter', 'folder' => 'area_counter',
+    'status' => 'retired', 'reason' => 'Replaced', 'releases' => [] },
+  { 'id' => 'old-tool', 'repo' => 'B-A-community/old-tool', 'extension' => 'Old Tool', 'folder' => 'old_tool',
+    'status' => 'retired', 'reason' => 'Gone', 'releases' => [] }] }
 clean = U.send(:sanitize, evil)
-r = clean['plugins'].find { |p| p['id'] == 'ralncs' }
-ok.('catalog: foreign hosts, repos and missing sha256 are dropped',
-    r['repo'] == 'B-A-community/ralncs' && r['extension'] == 'RALNCS' && r['releases'].map { |x| x['version'] } == ['1.0'], r['releases'])
-ok.('catalog: plugins outside plugins.json are dropped', clean['plugins'].none? { |p| p['id'] == 'stranger' })
+by = clean['plugins'].to_h { |p| [p['id'], p] }
+ok.('catalog: a foreign repo with our id is not trusted', by['ralncs'] && by['ralncs']['repo'] == 'B-A-community/ralncs' &&
+    by['ralncs']['extension'] == 'RALNCS' && by['ralncs']['releases'].empty?, by['ralncs'])
+pc = by['pathcopy-advanced']
+ok.('catalog: foreign hosts, other repos and missing sha256 are dropped; plugins.json names win',
+    pc && pc['extension'] == 'PathCopy Advanced' && pc['folder'] == 'pathcopy_advanced' && pc['releases'].map { |x| x['version'] } == ['1.1'],
+    pc && [pc['extension'], pc['folder'], pc['releases'].map { |x| x['version'] }])
+ok.('catalog: a new B-A-community plugin is accepted', by['new-tool'] && by['new-tool']['releases'].size == 1, by['new-tool'])
+ok.('catalog: unsafe folder names are dropped', !by.key?('sneaky'))
+ok.('catalog: our plugin missing from the catalog stays listed without versions', by['exterminatus'] && by['exterminatus']['releases'].empty?)
+clash = U.send(:sanitize, { 'format' => 1, 'hidden' => ['B-A-community/monsieur-bezier'], 'plugins' => [
+  { 'id' => 'area-counter', 'repo' => 'B-A-community/other-tool', 'extension' => 'Other', 'folder' => 'other', 'releases' => [] }] })
+ids = clash['plugins'].map { |p| [p['id'], p['repo']] }
+ok.('catalog: an id of our plugin cannot be taken by another repo', ids.include?(['area-counter', 'B-A-community/area-counter']) &&
+    ids.none? { |_, r| r == 'B-A-community/other-tool' }, ids)
+ok.('catalog: its hidden list hides even our listed plugins', ids.none? { |i, _| i == 'monsieur-bezier' }, ids)
+U.instance_variable_set(:@catalog, clean)
+rows = U.rows.to_h { |x| [x[:id], x] }
+ok.('retired and installed: shown with the reason, no update', rows['area-counter'] && rows['area-counter'][:status] == 'retired' &&
+    rows['area-counter'][:message] == 'Replaced', rows['area-counter']&.slice(:status, :message))
+ok.('retired and not installed: not shown', !rows.key?('old-tool'))
+ok.('retired plugin is not installed', U.install('area-counter').to_s.include?('retired'))
 U.catalog_url = 'C:/somewhere/catalog.json'
 ok.('local catalog files only in test mode', U.catalog_url == U::CATALOG_URL, U.catalog_url)
 U.test_mode = true
@@ -109,15 +141,30 @@ run_next = lambda do
     $updates_result = results.map { |r| r.join('  ') } + ["#{results.count { |r| r[0] == 'PASS' }}/#{results.size} passed"]
     next
   end
-  b.call
+  begin
+    b.call
+  rescue StandardError => e
+    results << ['FAIL', 'step raised', "#{e.class}: #{e.message} #{e.backtrace&.first}"]
+    run_next.call
+  end
 end
 # Ждать условия (опрос таймером), потом следующий шаг.
 wait_until = lambda do |cond, limit = 60, &after|
   started = Time.now
   timer = UI.start_timer(0.3, true) do
-    if cond.call || Time.now - started > limit
+    done = begin
+      cond.call || Time.now - started > limit
+    rescue StandardError => e
+      results << ['FAIL', 'wait condition raised', "#{e.class}: #{e.message}"]
+      true
+    end
+    if done
       UI.stop_timer(timer)
-      after&.call
+      begin
+        after&.call
+      rescue StandardError => e
+        results << ['FAIL', 'step raised', "#{e.class}: #{e.message} #{e.backtrace&.first}"]
+      end
       run_next.call
     end
   end
@@ -126,6 +173,8 @@ end
 # 1. Настоящий каталог из релизов GitHub (через API — каталога ещё нет).
 step.call do
   U.catalog_url = File.join(scratch, 'no_such_catalog.json')
+  FileUtils.rm_f(File.join(T::Library.data_dir, 'catalog_cache.json')) # иначе покажет кэш
+  U.instance_variable_set(:@catalog, nil) # и без каталога из проверок выше
   U.refresh
   wait_until.(-> { !U.checking? }) do
     rows = U.rows
@@ -138,6 +187,22 @@ step.call do
     ok.('Exterminatus itself is in the catalog with its release', by['exterminatus'] && by['exterminatus'][:latest].to_s != '',
         by['exterminatus']&.slice(:installed, :latest, :status))
     File.write(real, JSON.generate(U.catalog))
+  end
+end
+
+# 1б. Каталог недоступен: API обновляет версии наших, но найденные сами
+# плагины и статусы retired из прошлого каталога остаются.
+step.call do
+  real_catalog = U.catalog
+  U.instance_variable_set(:@catalog, clean)
+  U.refresh
+  wait_until.(-> { !U.checking? }) do
+    by = U.catalog['plugins'].to_h { |p| [p['id'], p] }
+    ok.('fallback keeps found plugins', by.key?('new-tool'), by.keys)
+    ok.('fallback keeps retired status', by['area-counter'] && by['area-counter']['status'] == 'retired', by['area-counter']&.slice('status', 'reason'))
+    ok.('fallback still refreshes our versions', by['pathcopy-advanced'] && by['pathcopy-advanced']['releases'].first &&
+        by['pathcopy-advanced']['releases'].first['version'] == '1.0.0', by['pathcopy-advanced'] && by['pathcopy-advanced']['releases'].map { |r| r['version'] })
+    U.instance_variable_set(:@catalog, real_catalog)
   end
 end
 

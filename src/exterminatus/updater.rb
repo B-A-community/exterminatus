@@ -60,6 +60,7 @@ module BACommunity
           changed
           get(catalog_url, json: true) do |status, body|
             if status == 200 && (data = parse_catalog(body))
+              Library.write_json('catalog_cache.json', data)
               finish_refresh(sanitize(data), nil)
             else
               from_api
@@ -73,24 +74,36 @@ module BACommunity
           plugins = Catalog.plugins
           entries = {}
           failed = []
-          before = (@catalog ? @catalog['plugins'] : []).to_h { |p| [p['id'], p] }
+          # Основа — то, что уже знали (каталог или его кэш): найденные сами
+          # плагины и статусы retired не теряются, API только обновляет версии.
+          known = @catalog || (cached = parse_catalog(JSON.generate(Library.read_json('catalog_cache.json', nil)))) && sanitize(cached)
+          before = (known ? known['plugins'] : []).to_h { |p| [p['repo'].to_s.downcase, p] }
           plugins.each do |plugin|
             get("#{API}/repos/#{plugin['repo']}/releases?per_page=20", json: true, api: true) do |status, body|
               releases = status == 200 ? (JSON.parse(body) rescue nil) : nil
               releases = [] if status == 404 # репозитория ещё нет
+              old = before[plugin['repo'].downcase]
               if releases.is_a?(Array)
-                entries[plugin['id']] = Catalog.entry(plugin, releases)
+                fresh = Catalog.entry(plugin, releases)
+                entries[plugin['id']] = old ? old.merge('releases' => fresh['releases']) : fresh
               else
                 # Не ответил — оставить то, что знали, и сказать об этом.
                 failed << "#{plugin['name']} (#{status.zero? ? 'no answer' : "HTTP #{status}"})"
-                entries[plugin['id']] = before[plugin['id']] || plugin.merge('releases' => [])
+                entries[plugin['id']] = old || plugin.merge('releases' => [])
               end
               if entries.size == plugins.size
-                list = plugins.map { |p| entries[p['id']] }
-                err = if failed.size == plugins.size then "GitHub is not reachable: #{failed.first}"
-                      elsif failed.any? then "Could not check #{failed.join(', ')}"
-                      end
-                finish_refresh(failed.size == plugins.size ? nil : sanitize(Catalog.build(list)), err)
+                if failed.size == plugins.size && known.nil?
+                  finish_refresh(nil, "GitHub is not reachable: #{failed.first}")
+                else
+                  ours = plugins.map { |p| p['repo'].downcase }
+                  rest = before.reject { |repo, _| ours.include?(repo) }.values
+                  err = if failed.size == plugins.size then "GitHub is not reachable: showing the last known list"
+                        elsif failed.any? then "Could not check #{failed.join(', ')}"
+                        end
+                  data = Catalog.build(plugins.map { |p| entries[p['id']] } + rest)
+                  data['hidden'] = known['hidden'] if known
+                  finish_refresh(sanitize(data), err)
+                end
               end
             end
           end
@@ -102,7 +115,7 @@ module BACommunity
         def rows
           return [] unless @catalog
 
-          @catalog['plugins'].map { |p| row(p) }
+          @catalog['plugins'].map { |p| row(p) }.reject { |r| r[:status] == 'retired' && r[:installed].nil? }
         end
 
         def row(plugin)
@@ -113,6 +126,7 @@ module BACommunity
           status = if job && %i[queued downloading installing].include?(job[:state]) then 'busy'
                    elsif job && job[:state] == :failed then 'error'
                    elsif pending then 'restart'
+                   elsif plugin['status'] == 'retired' then 'retired'
                    elsif latest.nil? then 'unpublished'
                    elsif inst.nil? then 'missing'
                    else
@@ -129,7 +143,7 @@ module BACommunity
             latest: latest && latest['version'], date: latest && latest['date'], notes: latest && latest['notes'],
             langs: latest ? latest['assets'].keys : [],
             previous: previous_release(plugin)&.dig('version'),
-            status: status, message: job && job[:message], pending: pending
+            status: status, message: (job && job[:message]) || (status == 'retired' ? plugin['reason'] : nil), pending: pending
           }
         end
 
@@ -176,6 +190,7 @@ module BACommunity
         # Поставить последнюю (или указанную) версию. version: — откат.
         def install(id, version: nil, lang: nil)
           plugin = find(id) or return "unknown plugin #{id}"
+          return "#{plugin['name']} is retired: #{plugin['reason']}" if plugin['status'] == 'retired'
           return "#{plugin['name']} is already in the queue" if @jobs[plugin['id']] && %i[queued downloading installing].include?(@jobs[plugin['id']][:state])
 
           release = version ? plugin['releases'].find { |r| Catalog.compare(r['version'], version).zero? } : plugin['releases'].first
@@ -323,18 +338,63 @@ module BACommunity
         # Каталог приходит из сети: оставляем только наши плагины (plugins.json,
         # оттуда же repo, имя расширения и папка) и только ассеты из релизов их
         # репозиториев на GitHub с sha256. Остальное отбрасывается.
+        # Список плагинов — из каталога (его собирает GitHub Actions в нашем
+        # репозитории): так новые плагины появляются без обновления
+        # Exterminatus. Доверяем только репозиториям B-A-community, ассетам из
+        # их релизов по HTTPS с sha256 и безопасным именам папок. Свой
+        # plugins.json уточняет: порядок, имена, описания, hidden и retired.
         def sanitize(data)
-          local = Catalog.plugins
-          given = Array(data['plugins']).select { |p| p.is_a?(Hash) }.to_h { |p| [p['id'].to_s, p] }
-          list = local.map do |plugin|
-            entry = given[plugin['id']] || {}
-            plugin.merge('releases' => clean_releases(plugin, entry['releases']))
+          cfg = Catalog.config
+          # Скрытые и по своему plugins.json, и по каталогу (он новее).
+          cfg = cfg.merge('hidden' => cfg['hidden'] + Array(data['hidden']).map(&:to_s))
+          local = cfg['plugins'].to_h { |p| [p['repo'].downcase, p] }
+          # id своих плагинов закреплены за их репозиториями.
+          reserved = cfg['plugins'].to_h { |p| [p['id'].to_s.downcase, p['repo'].downcase] }
+          seen_repo = {}
+          seen_id = {}
+          list = Array(data['plugins']).filter_map do |p|
+            next unless p.is_a?(Hash)
+
+            repo = p['repo'].to_s
+            next unless test_mode || repo.match?(Catalog::REPO)
+            next if Catalog.hidden?(repo, cfg) || seen_repo[repo.downcase]
+
+            entry = clean_entry(p.merge(local[repo.downcase] || {}))
+            next unless entry
+            next if seen_id[entry['id']]
+            next if reserved[entry['id']] && reserved[entry['id']] != repo.downcase
+
+            reason = Catalog.retired(repo, cfg)
+            entry = entry.merge('status' => 'retired', 'reason' => reason) if reason
+            seen_repo[repo.downcase] = true
+            seen_id[entry['id']] = true
+            entry
           end
-          if test_mode
-            known = local.map { |p| p['id'] }
-            list += given.reject { |id, _| known.include?(id) }.values.map { |p| p.merge('releases' => clean_releases(p, p['releases'])) }
+          # Наш плагин, которого нет в каталоге (ещё нет релиза), — без версий.
+          cfg['plugins'].each do |p|
+            next if seen_repo[p['repo'].downcase] || seen_id[p['id'].to_s.downcase] || Catalog.hidden?(p['repo'], cfg)
+
+            list << clean_entry(p.merge('releases' => []))
           end
-          data.merge('plugins' => list)
+          data.merge('plugins' => order(list.compact, cfg))
+        end
+
+        def clean_entry(p)
+          id = p['id'].to_s.downcase
+          folder = p['folder'].to_s
+          ext = p['extension'].to_s
+          return nil unless id.match?(Catalog::SAFE_NAME) && folder.match?(Catalog::SAFE_NAME) && !ext.strip.empty?
+
+          { 'id' => id, 'name' => (p['name'].to_s.strip.empty? ? ext : p['name'].to_s), 'repo' => p['repo'].to_s,
+            'extension' => ext, 'folder' => folder, 'description' => p['description'].to_s[0, 200],
+            'status' => p['status'] == 'retired' ? 'retired' : 'active', 'reason' => p['reason'].to_s[0, 300],
+            'releases' => clean_releases(p, p['releases']) }
+        end
+
+        # Сначала — в порядке plugins.json, потом найденные сами, по имени.
+        def order(list, cfg)
+          rank = cfg['plugins'].each_with_index.to_h { |p, i| [p['repo'].downcase, i] }
+          list.sort_by { |e| [rank.fetch(e['repo'].downcase, rank.size), e['name'].downcase] }
         end
 
         def clean_releases(plugin, releases)
@@ -519,47 +579,8 @@ module BACommunity
         end
       end
 
-      # Чтение zip без сторонних библиотек: оглавление и распаковка записи.
-      module Unzip
-        class << self
-          # → { имя => [смещение локального заголовка, метод, сжатый размер] }
-          def entries(data)
-            data = data.b
-            eocd = data.rindex("PK\x05\x06".b) or raise 'not a zip archive'
-            count = data[eocd + 10, 2].unpack1('v')
-            offset = data[eocd + 16, 4].unpack1('V')
-            raise 'zip64 archives are not supported' if count == 0xFFFF || offset == 0xFFFFFFFF
-            list = {}
-            count.times do
-              raise 'broken zip archive' unless data[offset, 4] == "PK\x01\x02".b
-
-              method, = data[offset + 10, 2].unpack('v')
-              csize = data[offset + 20, 4].unpack1('V')
-              name_len, extra_len, comment_len = data[offset + 28, 6].unpack('vvv')
-              local = data[offset + 42, 4].unpack1('V')
-              # Имена — байты: кодировка в архиве бывает любая, нам нужен только суффикс.
-              name = data[offset + 46, name_len]
-              list[name] = [local, method, csize]
-              offset += 46 + name_len + extra_len + comment_len
-            end
-            list
-          end
-
-          def read(data, entry)
-            data = data.b
-            local, method, csize = entry
-            raise 'broken zip archive' unless data[local, 4] == "PK\x03\x04".b
-
-            name_len, extra_len = data[local + 26, 4].unpack('vv')
-            raw = data[local + 30 + name_len + extra_len, csize]
-            case method
-            when 0 then raw
-            when 8 then Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(raw)
-            else raise "unsupported zip compression #{method}"
-            end
-          end
-        end
-      end
+      # Распаковка zip — в catalog.rb (нужна и сборщику каталога).
+      Unzip = Catalog::Unzip
     end
   end
 end

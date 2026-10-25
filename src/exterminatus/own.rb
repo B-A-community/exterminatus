@@ -159,7 +159,8 @@ module BACommunity
                 state = { 'update' => "update #{r[:latest]}", 'current' => 'up to date', 'missing' => "not installed (#{r[:latest]})",
                           'newer' => "newer than release #{r[:latest]}", 'restart' => "#{r[:pending]} after restart",
                           'unpublished' => 'no releases', 'busy' => r[:message], 'error' => "error: #{r[:message]}",
-                'nolang' => "#{r[:latest]} has no #{r[:lang].to_s.upcase} build" }[r[:status]]
+                'nolang' => "#{r[:latest]} has no #{r[:lang].to_s.upcase} build",
+                'retired' => "retired: #{r[:message]}" }[r[:status]]
                 "#{r[:name]}: #{r[:installed] || '—'} — #{state}"
               end
               Session.emit(:result, lines.join("
