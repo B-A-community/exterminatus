@@ -319,7 +319,7 @@ m.close_active while m.active_path
 m.entities.grep(Sketchup::Group).select { |x| x.name == 'EXT_SANDBOX' }.each(&:erase!)
 m.layers.remove(m.layers['EXT Test Tag']) if m.layers['EXT Test Tag']
 S.history.replace(saved_history)
-Sketchup.write_default(T::PREFS_KEY, 'history', JSON.generate(saved_history))
+T::Library.write_json('history.json', saved_history)
 L.path = saved_library
 L.reload
 

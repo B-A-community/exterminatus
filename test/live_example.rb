@@ -12,7 +12,12 @@ root = File.expand_path('../examples/hello_plugin', __dir__)
 same = File.read(File.join(root, 'hello_plugin', 'terminal_bridge.rb')) ==
        File.read(File.expand_path('../src/exterminatus/terminal_bridge.rb', __dir__))
 ok.('example carries the current bridge', same)
-load File.join(root, 'hello_plugin', 'main.rb') unless T::Registry.find('HelloStairs')
+unless T::Registry.find('HelloStairs')
+  # Тест обновлений мог поставить и снять пример: его защита @ui_built осталась.
+  hp = defined?(BACommunity::HelloPlugin) && BACommunity::HelloPlugin
+  hp.remove_instance_variable(:@ui_built) if hp && hp.instance_variable_defined?(:@ui_built)
+  load File.join(root, 'hello_plugin', 'main.rb')
+end
 
 ok.('commands registered', T::Registry.find('HelloStairs') && T::Registry.find('HelloRename'))
 ok.('menu items built', T::Kit.ui_command('HelloStairs').is_a?(UI::Command) && T::Kit.ui_command('HelloRename').is_a?(UI::Command))
@@ -48,7 +53,7 @@ m.select_tool(nil)
 m.close_active while m.active_path
 m.entities.grep(Sketchup::Group).select { |x| x.name == 'EXT_SANDBOX' }.each(&:erase!)
 S.history.replace(saved_history)
-Sketchup.write_default(T::PREFS_KEY, 'history', JSON.generate(saved_history))
+T::Library.write_json('history.json', saved_history)
 
 results.each { |r| puts r.join('  ') }
 puts "#{results.count { |r| r[0] == 'PASS' }}/#{results.size} passed"

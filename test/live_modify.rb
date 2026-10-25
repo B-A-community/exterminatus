@@ -262,7 +262,7 @@ m.select_tool(nil)
 m.close_active while m.active_path
 m.entities.grep(Sketchup::Group).select { |x| x.name == 'EXT_SANDBOX' }.each(&:erase!)
 S.history.replace(saved_history)
-Sketchup.write_default(T::PREFS_KEY, 'history', JSON.generate(saved_history))
+T::Library.write_json('history.json', saved_history)
 
 results.each { |r| puts r.join('  ') }
 puts "#{results.count { |r| r[0] == 'PASS' }}/#{results.size} passed"

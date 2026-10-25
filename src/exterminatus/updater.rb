@@ -220,13 +220,12 @@ module BACommunity
           assets[lang.to_s] || assets['any']
         end
 
-        # Поставленное, но ещё не загруженное: id => версия. Пишется в
-        # настройки — окно помнит о перезапуске и после закрытия.
+        # Поставленное, но ещё не загруженное: id => версия. Пишется в файл —
+        # окно помнит о перезапуске и после закрытия.
         def pending_versions
           @pending ||= begin
-            JSON.parse(Sketchup.read_default(PREFS_KEY, 'pending_updates', '{}').to_s)
-          rescue JSON::ParserError
-            {}
+            data = Library.read_json('pending_updates.json', {})
+            data.is_a?(Hash) ? data : {}
           end
         end
 
@@ -459,11 +458,11 @@ module BACommunity
         end
 
         def data_dir
-          File.dirname(Library.path)
+          Library.data_dir
         end
 
         def save_pending
-          Sketchup.write_default(PREFS_KEY, 'pending_updates', JSON.generate(pending_versions))
+          Library.write_json('pending_updates.json', pending_versions)
         end
 
         def lang_of(plugin, ext)

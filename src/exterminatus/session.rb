@@ -275,9 +275,8 @@ module BACommunity
 
         def history
           @history ||= begin
-            JSON.parse(Sketchup.read_default(PREFS_KEY, 'history', '[]').to_s)
-          rescue JSON::ParserError
-            []
+            list = Library.read_json('history.json', nil)
+            list.is_a?(Array) ? list.map(&:to_s) : []
           end
         end
 
@@ -826,7 +825,7 @@ module BACommunity
           list.delete(text)
           list << text
           list.shift(list.size - HISTORY_LIMIT) if list.size > HISTORY_LIMIT
-          Sketchup.write_default(PREFS_KEY, 'history', JSON.generate(list))
+          Library.write_json('history.json', list)
         end
       end
     end

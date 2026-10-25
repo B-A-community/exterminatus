@@ -205,4 +205,4 @@ for r in results:
     print('  '.join(r))
 print('%d/%d passed' % (sum(r[0] == 'PASS' for r in results), len(results)))
 rb("h=%s; BACommunity::Terminal::Session.history.replace(h); "
-   "Sketchup.write_default(BACommunity::Terminal::PREFS_KEY, 'history', JSON.generate(h)); nil.to_json" % json.dumps(SAVED_HISTORY))
+   "BACommunity::Terminal::Library.write_json('history.json', h); nil.to_json" % json.dumps(SAVED_HISTORY))

@@ -55,7 +55,16 @@ module BACommunity
       watch(Sketchup.active_model)
       Sketchup.add_observer(AppWatch.new)
       UI.start_timer(2, false) { Shortcut.report_pending }
-      Updater.schedule_check
+      # Проверка обновлений не должна мешать терминалу загрузиться.
+      begin
+        # До 0.3.2 история и обновления лежали в настройках SketchUp и там
+        # портились: убрать старые значения, теперь это файлы.
+        # Не читаем их: само чтение испорченного значения падает.
+        %w[history pending_updates].each { |k| Sketchup.write_default(PREFS_KEY, k, '') }
+        Updater.schedule_check
+      rescue StandardError, ScriptError => e
+        warn "Exterminatus: update check skipped: #{e.class}: #{e.message}"
+      end
     end
   end
 end

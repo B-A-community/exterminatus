@@ -206,7 +206,7 @@ end
 
 %w[ExtTest ExtLambda0 ExtFail ExtRaise ExtChain ExtReq ExtLen ExtStr ExtOuter ExtAsk].each { |id| T.unregister(id) }
 S.history.replace($saved_history)
-Sketchup.write_default(T::PREFS_KEY, 'history', JSON.generate($saved_history))
+T::Library.write_json('history.json', $saved_history)
 fails = $checks.reject { |c| c[0] == 'PASS' }
 puts $checks.map { |c| c.join('  ') }
 puts "#{$checks.size - fails.size}/#{$checks.size} passed"

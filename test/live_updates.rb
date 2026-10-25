@@ -14,7 +14,7 @@ scratch = ENV['EXT_SCRATCH'] || File.join(Sketchup.temp_dir, 'ext_updates_test')
 FileUtils.mkdir_p(scratch)
 saved_url = Sketchup.read_default(T::PREFS_KEY, 'catalog_url', '')
 U.test_mode = false
-saved_pending = Sketchup.read_default(T::PREFS_KEY, 'pending_updates', '{}')
+saved_pending = T::Library.read_json('pending_updates.json', {})
 saved_lang = Sketchup.read_default(T::PREFS_KEY, 'install_lang', '')
 plugins_dir = File.dirname(Sketchup.extensions.find { |e| e.name == 'Exterminatus' }.extension_path)
 root = File.expand_path('../examples/hello_plugin', __dir__)
@@ -102,7 +102,7 @@ run_next = lambda do
   if b.nil?
     # уборка
     Sketchup.write_default(T::PREFS_KEY, 'catalog_url', saved_url)
-    Sketchup.write_default(T::PREFS_KEY, 'pending_updates', saved_pending)
+    T::Library.write_json('pending_updates.json', saved_pending)
     Sketchup.write_default(T::PREFS_KEY, 'install_lang', saved_lang)
     U.test_mode = false
     U.instance_variable_set(:@pending, nil)
@@ -135,7 +135,8 @@ step.call do
     ok.('installed language is read from lang.rb', by['area-counter'] && by['area-counter'][:lang] == 'ru', by['area-counter'])
     ok.('installed equal to release is up to date', by['pathcopy-advanced'] && by['pathcopy-advanced'][:status] == 'current',
         by['pathcopy-advanced']&.slice(:installed, :latest, :status))
-    ok.('Exterminatus without releases is unpublished', by['exterminatus'] && by['exterminatus'][:status] == 'unpublished')
+    ok.('Exterminatus itself is in the catalog with its release', by['exterminatus'] && by['exterminatus'][:latest].to_s != '',
+        by['exterminatus']&.slice(:installed, :latest, :status))
     File.write(real, JSON.generate(U.catalog))
   end
 end
@@ -226,6 +227,8 @@ end
 step.call do
   T.unregister('HelloStairs')
   T.unregister('HelloRename')
+  # И записи меню удалённой копии: иначе PluginCheck видит её пропавшие иконки.
+  %w[hellostairs hellorename].each { |id| T::Kit.specs.delete(id) }
   FileUtils.rm_f(Dir.glob(File.join(plugins_dir, 'hello_plugin*.rb')))
   FileUtils.rm_rf(File.join(plugins_dir, 'hello_plugin'))
   ok.('test plugin removed from Plugins', Dir.glob(File.join(plugins_dir, 'hello_plugin*')).empty?)

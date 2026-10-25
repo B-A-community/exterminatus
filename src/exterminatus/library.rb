@@ -16,10 +16,34 @@ module BACommunity
         attr_writer :path
 
         def path
-          @path ||= begin
-            base = Sketchup.platform == :platform_win ? ENV['APPDATA'].to_s : File.join(Dir.home, 'Library', 'Application Support')
-            File.join(base, 'BACommunity', 'Exterminatus', 'library.json')
-          end
+          @path ||= File.join(data_dir, 'library.json')
+        end
+
+        # Папка данных Exterminatus: библиотека, история, загрузки.
+        def data_dir
+          base = Sketchup.platform == :platform_win ? ENV['APPDATA'].to_s : File.join(Dir.home, 'Library', 'Application Support')
+          File.join(base, 'BACommunity', 'Exterminatus')
+        end
+
+        # Свои данные — в JSON-файлах, не в Sketchup.write_default: строку с
+        # кавычками SketchUp сохраняет так, что при чтении получает nil или
+        # падает с SyntaxError (так ломались история и обновления).
+        def read_json(name, default)
+          file = File.join(data_dir, name)
+          return default unless File.exist?(file)
+
+          JSON.parse(File.read(file, encoding: 'utf-8'))
+        rescue JSON::ParserError, SystemCallError
+          default
+        end
+
+        def write_json(name, data)
+          FileUtils.mkdir_p(data_dir)
+          tmp = File.join(data_dir, "#{name}.tmp")
+          File.write(tmp, JSON.generate(data), encoding: 'utf-8')
+          File.rename(tmp, File.join(data_dir, name))
+        rescue SystemCallError => e
+          warn "Exterminatus: cannot save #{name}: #{e.message}"
         end
 
         def data
