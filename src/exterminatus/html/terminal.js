@@ -535,6 +535,17 @@
       if (!window.getSelection().toString()) el.input.focus();
     });
     document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    // В окнах SketchUp Backspace вне поля ввода — это «Назад» браузера:
+    // страница строки первая в истории, и окно становится пустым. Клавиши,
+    // нажатые мимо поля (фокус на самой странице после клика по заголовку),
+    // отправляем в поле.
+    document.addEventListener('keydown', function (e) {
+      if (e.target === el.input || e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+      if (e.key === 'Backspace') e.preventDefault();
+      if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Enter' || e.key === 'Escape') el.input.focus();
+    }, true);
+    // Окно получило фокус (клик по заголовку, горячая клавиша) — курсор в строку.
+    window.addEventListener('focus', function () { el.input.focus(); });
     call('ready');
   });
 })();

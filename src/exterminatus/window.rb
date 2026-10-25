@@ -110,8 +110,12 @@ module BACommunity
           end
         end
 
+        # Окно закрывается не сразу: забываем его сейчас, чтобы следующее
+        # открытие создало новое, а не показало закрывающееся (тогда строка
+        # не появлялась).
         def close(mode)
-          d = @dialogs[mode]
+          d = @dialogs.delete(mode)
+          @state.delete(mode)
           d.close if d&.visible?
         end
 
@@ -149,9 +153,13 @@ module BACommunity
           dialog.add_action_callback('pin') { |_ctx| toggle_pin }
           # Закрытое окно SketchUp не открывает заново с теми же колбэками —
           # следующий раз создаём новое.
+          # Старое окно, закрывшееся уже после открытия нового, состояние
+          # нового не трогает.
           dialog.set_on_closed do
-            @state.delete(mode)
-            @dialogs.delete(mode) if @dialogs[mode].equal?(dialog)
+            if @dialogs[mode].equal?(dialog)
+              @state.delete(mode)
+              @dialogs.delete(mode)
+            end
           end
           dialog
         end
